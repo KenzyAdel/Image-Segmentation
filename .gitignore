@@ -1,0 +1,61 @@
+########################################
+# Build results and runtime artifacts
+########################################
+**/bin/
+**/obj/
+**/publish/
+**/TestResults/
+**/artifacts/
+
+########################################
+# User-specific and local settings
+########################################
+.vs/
+**/.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.userprefs
+*.dbmdl
+
+########################################
+# NuGet packages - if restored automatically
+########################################
+**/packages/
+*.nupkg
+project.lock.json
+project.fragment.lock.json
+
+########################################
+# Logs, temp, cache
+########################################
+*.log
+*.tmp
+*.bak
+*.cache
+
+########################################
+# Visual Studio Code (if occasionally used)
+########################################
+.vscode/
+**/.vscode/
+
+########################################
+# JetBrains Rider / ReSharper
+########################################
+.idea/
+*.DotSettings.user
+_ReSharper*/
+*.resharper
+
+########################################
+# OS-specific files
+########################################
+Thumbs.db
+.DS_Store
+
+########################################
+# Ignore compiled/debug-related files
+########################################
+*.pdb
