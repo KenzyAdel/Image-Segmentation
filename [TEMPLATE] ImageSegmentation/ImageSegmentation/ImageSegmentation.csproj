@@ -10,7 +10,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>ImageTemplate</RootNamespace>
     <AssemblyName>ImageTemplate</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
     <UpgradeBackupLocation>
@@ -81,6 +81,22 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <None Include="[1] Sample Cases\Test Cases Description &amp; Expected Outputs.docx" />
+    <None Include="[1] Sample Cases\Test Cases Description &amp; Expected Outputs.pdf" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="[1] Sample Cases\Sample 1\input.png" />
+    <Content Include="[1] Sample Cases\Sample 1\output.png" />
+    <Content Include="[1] Sample Cases\Sample 1\output.txt" />
+    <Content Include="[1] Sample Cases\Sample 2\input.png" />
+    <Content Include="[1] Sample Cases\Sample 2\output.png" />
+    <Content Include="[1] Sample Cases\Sample 2\output.txt" />
+    <Content Include="[1] Sample Cases\Sample 3\input.png" />
+    <Content Include="[1] Sample Cases\Sample 3\output.png" />
+    <Content Include="[1] Sample Cases\Sample 3\output.txt" />
+    <Content Include="[1] Sample Cases\Sample 4\input.png" />
+    <Content Include="[1] Sample Cases\Sample 4\output.png" />
+    <Content Include="[1] Sample Cases\Sample 4\output.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
