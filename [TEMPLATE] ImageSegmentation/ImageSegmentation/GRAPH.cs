@@ -17,9 +17,9 @@ namespace ImageTemplate
             imageMatrix = matrix;
         }
 
-        public Dictionary<long, List<int>> Red_Weight()
+        public Dictionary<long, List<Tuple<long, int>>> Red_Weight()
         {
-            Dictionary<long, List<int>> redGraph = new Dictionary<long, List<int>>();
+            Dictionary<long, List<Tuple<long, int>>> redGraph = new Dictionary<long, List<Tuple<long, int>>>();
             int rows = imageMatrix.GetLength(0);
             int columns = imageMatrix.GetLength(1);
 
@@ -28,85 +28,101 @@ namespace ImageTemplate
                 for (int j = 0; j < columns; j++)
                 {
                     long currentIndex = i * columns + j;
-                    redGraph[currentIndex] = new List<int>();
+                    redGraph[currentIndex] = new List<Tuple<long, int>>();
 
                     // Top-Left Neighbor
                     if (i - 1 >= 0 && j - 1 >= 0)
                     {
-                        redGraph[currentIndex].Add(Math.Abs(imageMatrix[i, j].red - imageMatrix[i - 1, j - 1].red));
+                        long Index = (i - 1) * columns + (j - 1);
+                        int weight = Math.Abs(imageMatrix[i, j].red - imageMatrix[i - 1, j - 1].red);
+                        redGraph[currentIndex].Add(new Tuple<long, int>(Index, weight));
+
                     }
 
                     // Top Neighbor
                     if (i - 1 >= 0)
                     {
-                        redGraph[currentIndex].Add(Math.Abs(imageMatrix[i, j].red - imageMatrix[i - 1, j].red));
+                        long Index = (i - 1) * columns + j;
+                        int weight = Math.Abs(imageMatrix[i, j].red - imageMatrix[i - 1, j].red);
+                        redGraph[currentIndex].Add(new Tuple<long, int>(Index, weight));
                     }
 
                     // Top-Right Neighbor
                     if (i - 1 >= 0 && j + 1 < columns)
                     {
-                        redGraph[currentIndex].Add(Math.Abs(imageMatrix[i, j].red - imageMatrix[i - 1, j + 1].red));
+                        long Index = (i - 1) * columns + (j + 1);
+                        int weight = Math.Abs(imageMatrix[i, j].red - imageMatrix[i - 1, j + 1].red);
+                        redGraph[currentIndex].Add(new Tuple<long, int>(Index, weight));
                     }
 
                     // Left Neighbor
                     if (j - 1 >= 0)
                     {
-                        redGraph[currentIndex].Add(Math.Abs(imageMatrix[i, j].red - imageMatrix[i, j - 1].red));
+                        long Index = i * columns + (j - 1);
+                        int weight = Math.Abs(imageMatrix[i, j].red - imageMatrix[i, j - 1].red);
+                        redGraph[currentIndex].Add(new Tuple<long, int>(Index, weight));
                     }
 
                     // Right Neighbor
                     if (j + 1 < columns)
                     {
-                        redGraph[currentIndex].Add(Math.Abs(imageMatrix[i, j].red - imageMatrix[i, j + 1].red));
+                        long Index = i * columns + (j + 1);
+                        int weight = Math.Abs(imageMatrix[i, j].red - imageMatrix[i, j + 1].red);
+                        redGraph[currentIndex].Add(new Tuple<long, int>(Index, weight));
                     }
 
                     // Bottom-Left Neighbor
                     if (i + 1 < rows && j - 1 >= 0)
                     {
-                        redGraph[currentIndex].Add(Math.Abs(imageMatrix[i, j].red - imageMatrix[i + 1, j - 1].red));
+                        long Index = (i + 1) * columns + (j - 1);
+                        int weight = Math.Abs(imageMatrix[i, j].red - imageMatrix[i + 1, j - 1].red);
+                        redGraph[currentIndex].Add(new Tuple<long, int>(Index, weight));
                     }
 
                     // Bottom Neighbor
                     if (i + 1 < rows)
                     {
-                        redGraph[currentIndex].Add(Math.Abs(imageMatrix[i, j].red - imageMatrix[i + 1, j].red));
+                        long Index = (i + 1) * columns + j;
+                        int weight = Math.Abs(imageMatrix[i, j].red - imageMatrix[i + 1, j].red);
+                        redGraph[currentIndex].Add(new Tuple<long, int>(Index, weight));
                     }
 
                     // Bottom-Right Neighbor
                     if (i + 1 < rows && j + 1 < columns)
                     {
-                        redGraph[currentIndex].Add(Math.Abs(imageMatrix[i, j].red - imageMatrix[i + 1, j + 1].red));
+                        long Index = (i + 1) * columns + (j + 1);
+                        int weight = Math.Abs(imageMatrix[i, j].red - imageMatrix[i + 1, j + 1].red);
+                        redGraph[currentIndex].Add(new Tuple<long, int>(Index, weight));
                     }
                 }
 
             }
 
-            Console.WriteLine("\nRed Channel Weight Graph:");
-            Console.WriteLine("(Format: Pixel [row,col] → Neighbor Directions with Weights)");
-            Console.WriteLine(new string('=', 60));
-            string[] directions = { "Top-Left", "Top", "Top-Right", "Left", "Right", "Bottom-Left", "Bottom", "Bottom-Right" };
-            foreach (var entry in redGraph.OrderBy(e => e.Key))
-            {
-                long index = entry.Key;
-                int row = (int)(index / columns);
-                int col = (int)(index % columns);
-                Console.Write($"[{row},{col}]: ");
-                for (int i = 0; i < entry.Value.Count; i++)
-                {
-                    Console.Write($"{directions[i]}({entry.Value[i]})");
-                    if (i < entry.Value.Count - 1) Console.Write(", ");
-                }
+            // Console output to print the list of tuples directly
+             Console.WriteLine("\nRed Channel Weight Graph:");
+             Console.WriteLine("(Format: Pixel [row,col] → List of Tuples (Neighbor Index, Weight))");
+             Console.WriteLine(new string('=', 60));
 
-                Console.WriteLine($"\n{new string('-', 60)}");
-            }
+             foreach (var entry in redGraph.OrderBy(e => e.Key))
+             {
+                 long index = entry.Key;
+                 int row = (int)(index / columns);
+                 int col = (int)(index % columns);
+                 Console.Write($"[{row},{col}] → ");
+
+                 // Print the list of tuples (neighbor index, weight)
+                 Console.WriteLine("[ " + string.Join(", ", entry.Value.Select(t => $"({t.Item1}, {t.Item2})")) + " ]");
+
+                 Console.WriteLine(new string('-', 60));
+             }
 
             return redGraph.OrderBy(e => e.Key).ToDictionary(pair => pair.Key, pair => pair.Value);
         }
 
 
-        public Dictionary<long, List<int>> Blue_Weight()
+        public Dictionary<long, List<Tuple<long, int>>> Blue_Weight()
         {
-            Dictionary<long, List<int>> blueGraph = new Dictionary<long, List<int>>();
+            Dictionary<long, List<Tuple<long, int>>> blueGraph = new Dictionary<long, List<Tuple<long, int>>>();
             int rows = imageMatrix.GetLength(0);
             int columns = imageMatrix.GetLength(1);
 
@@ -115,85 +131,100 @@ namespace ImageTemplate
                 for (int j = 0; j < columns; j++)
                 {
                     long currentIndex = i * columns + j;
-                    blueGraph[currentIndex] = new List<int>();
+                    blueGraph[currentIndex] = new List<Tuple<long, int>>();
 
                     // Top-Left Neighbor
                     if (i - 1 >= 0 && j - 1 >= 0)
                     {
-                        blueGraph[currentIndex].Add(Math.Abs(imageMatrix[i, j].blue - imageMatrix[i - 1, j - 1].blue));
+                        long Index = (i - 1) * columns + (j - 1);
+                        int weight = Math.Abs(imageMatrix[i, j].blue - imageMatrix[i - 1, j - 1].blue);
+                        blueGraph[currentIndex].Add(new Tuple<long, int>(Index, weight));
                     }
 
                     // Top Neighbor
                     if (i - 1 >= 0)
                     {
-                        blueGraph[currentIndex].Add(Math.Abs(imageMatrix[i, j].blue - imageMatrix[i - 1, j].blue));
+                        long Index = (i - 1) * columns + j;
+                        int weight = Math.Abs(imageMatrix[i, j].blue - imageMatrix[i - 1, j].blue);
+                        blueGraph[currentIndex].Add(new Tuple<long, int>(Index, weight));
                     }
 
                     // Top-Right Neighbor
                     if (i - 1 >= 0 && j + 1 < columns)
                     {
-                        blueGraph[currentIndex].Add(Math.Abs(imageMatrix[i, j].blue - imageMatrix[i - 1, j + 1].blue));
+                        long Index = (i - 1) * columns + (j + 1);
+                        int weight = Math.Abs(imageMatrix[i, j].blue - imageMatrix[i - 1, j + 1].blue);
+                        blueGraph[currentIndex].Add(new Tuple<long, int>(Index, weight));
                     }
 
                     // Left Neighbor
                     if (j - 1 >= 0)
                     {
-                        blueGraph[currentIndex].Add(Math.Abs(imageMatrix[i, j].blue - imageMatrix[i, j - 1].blue));
+                        long Index = i * columns + (j - 1);
+                        int weight = Math.Abs(imageMatrix[i, j].blue - imageMatrix[i, j - 1].blue);
+                        blueGraph[currentIndex].Add(new Tuple<long, int>(Index, weight));
                     }
 
                     // Right Neighbor
                     if (j + 1 < columns)
                     {
-                        blueGraph[currentIndex].Add(Math.Abs(imageMatrix[i, j].blue - imageMatrix[i, j + 1].blue));
+                        long Index = i * columns + (j + 1);
+                        int weight = Math.Abs(imageMatrix[i, j].blue - imageMatrix[i, j + 1].blue);
+                        blueGraph[currentIndex].Add(new Tuple<long, int>(Index, weight));
                     }
 
                     // Bottom-Left Neighbor
                     if (i + 1 < rows && j - 1 >= 0)
                     {
-                        blueGraph[currentIndex].Add(Math.Abs(imageMatrix[i, j].blue - imageMatrix[i + 1, j - 1].blue));
+                        long Index = (i + 1) * columns + (j - 1);
+                        int weight = Math.Abs(imageMatrix[i, j].blue - imageMatrix[i + 1, j - 1].blue);
+                        blueGraph[currentIndex].Add(new Tuple<long, int>(Index, weight));
                     }
 
                     // Bottom Neighbor
                     if (i + 1 < rows)
                     {
-                        blueGraph[currentIndex].Add(Math.Abs(imageMatrix[i, j].blue - imageMatrix[i + 1, j].blue));
+                        long Index = (i + 1) * columns + j;
+                        int weight = Math.Abs(imageMatrix[i, j].blue - imageMatrix[i + 1, j].blue);
+                        blueGraph[currentIndex].Add(new Tuple<long, int>(Index, weight));
                     }
 
                     // Bottom-Right Neighbor
                     if (i + 1 < rows && j + 1 < columns)
                     {
-                        blueGraph[currentIndex].Add(Math.Abs(imageMatrix[i, j].blue - imageMatrix[i + 1, j + 1].blue));
+                        long Index = (i + 1) * columns + (j + 1);
+                        int weight = Math.Abs(imageMatrix[i, j].blue - imageMatrix[i + 1, j + 1].blue);
+                        blueGraph[currentIndex].Add(new Tuple<long, int>(Index, weight));
                     }
                 }
 
             }
 
+            // Console output to print the list of tuples directly
             /*Console.WriteLine("\nRed Channel Weight Graph:");
-            Console.WriteLine("(Format: Pixel [row,col] → Neighbor Directions with Weights)");
+            Console.WriteLine("(Format: Pixel [row,col] → List of Tuples (Neighbor Index, Weight))");
             Console.WriteLine(new string('=', 60));
-            string[] directions = { "Top-Left", "Top", "Top-Right","Left", "Right","Bottom-Left", "Bottom", "Bottom-Right" };
-            foreach (var entry in redGraph.OrderBy(e => e.Key))
+
+            foreach (var entry in blueGraph.OrderBy(e => e.Key))
             {
                 long index = entry.Key;
                 int row = (int)(index / columns);
                 int col = (int)(index % columns);
-                Console.Write($"[{row},{col}]: ");
-                for (int i = 0; i < entry.Value.Count; i++)
-                {
-                    Console.Write($"{directions[i]}({entry.Value[i]})");
-                    if (i < entry.Value.Count - 1) Console.Write(", ");
-                }
+                Console.Write($"[{row},{col}] → ");
 
-                Console.WriteLine($"\n{new string('-', 60)}");
+                // Print the list of tuples (neighbor index, weight)
+                Console.WriteLine("[ " + string.Join(", ", entry.Value.Select(t => $"({t.Item1}, {t.Item2})")) + " ]");
+
+                Console.WriteLine(new string('-', 60));
             }*/
 
             return blueGraph.OrderBy(e => e.Key).ToDictionary(pair => pair.Key, pair => pair.Value);
         }
 
 
-        public Dictionary<long, List<int>> Green_Weight()
+        public Dictionary<long, List<Tuple<long, int>>> Green_Weight()
         {
-            Dictionary<long, List<int>> greenGraph = new Dictionary<long, List<int>>();
+            Dictionary<long, List<Tuple<long, int>>> greenGraph = new Dictionary<long, List<Tuple<long, int>>>();
             int rows = imageMatrix.GetLength(0);
             int columns = imageMatrix.GetLength(1);
 
@@ -202,77 +233,92 @@ namespace ImageTemplate
                 for (int j = 0; j < columns; j++)
                 {
                     long currentIndex = i * columns + j;
-                    greenGraph[currentIndex] = new List<int>();
+                    greenGraph[currentIndex] = new List<Tuple<long, int>>();
 
                     // Top-Left Neighbor
                     if (i - 1 >= 0 && j - 1 >= 0)
                     {
-                        greenGraph[currentIndex].Add(Math.Abs(imageMatrix[i, j].green - imageMatrix[i - 1, j - 1].green));
+                        long Index = (i - 1) * columns + (j - 1);
+                        int weight = Math.Abs(imageMatrix[i, j].green - imageMatrix[i - 1, j - 1].green);
+                        greenGraph[currentIndex].Add(new Tuple<long, int>(Index, weight));
                     }
 
                     // Top Neighbor
                     if (i - 1 >= 0)
                     {
-                        greenGraph[currentIndex].Add(Math.Abs(imageMatrix[i, j].green - imageMatrix[i - 1, j].green));
+                        long Index = (i - 1) * columns + j;
+                        int weight = Math.Abs(imageMatrix[i, j].green - imageMatrix[i - 1, j].green);
+                        greenGraph[currentIndex].Add(new Tuple<long, int>(Index, weight));
                     }
 
                     // Top-Right Neighbor
                     if (i - 1 >= 0 && j + 1 < columns)
                     {
-                        greenGraph[currentIndex].Add(Math.Abs(imageMatrix[i, j].green - imageMatrix[i - 1, j + 1].green));
+                        long Index = (i - 1) * columns + (j + 1);
+                        int weight = Math.Abs(imageMatrix[i, j].green - imageMatrix[i - 1, j + 1].green);
+                        greenGraph[currentIndex].Add(new Tuple<long, int>(Index, weight));
                     }
 
                     // Left Neighbor
                     if (j - 1 >= 0)
                     {
-                        greenGraph[currentIndex].Add(Math.Abs(imageMatrix[i, j].green - imageMatrix[i, j - 1].green));
+                        long Index = i * columns + (j - 1);
+                        int weight = Math.Abs(imageMatrix[i, j].green - imageMatrix[i, j - 1].green);
+                        greenGraph[currentIndex].Add(new Tuple<long, int>(Index, weight));
                     }
 
                     // Right Neighbor
                     if (j + 1 < columns)
                     {
-                        greenGraph[currentIndex].Add(Math.Abs(imageMatrix[i, j].green - imageMatrix[i, j + 1].green));
+                        long Index = i * columns + (j + 1);
+                        int weight = Math.Abs(imageMatrix[i, j].green - imageMatrix[i, j + 1].green);
+                        greenGraph[currentIndex].Add(new Tuple<long, int>(Index, weight));
                     }
 
                     // Bottom-Left Neighbor
                     if (i + 1 < rows && j - 1 >= 0)
                     {
-                        greenGraph[currentIndex].Add(Math.Abs(imageMatrix[i, j].green - imageMatrix[i + 1, j - 1].green));
+                        long Index = (i + 1) * columns + (j - 1);
+                        int weight = Math.Abs(imageMatrix[i, j].green - imageMatrix[i + 1, j - 1].green);
+                        greenGraph[currentIndex].Add(new Tuple<long, int>(Index, weight));
                     }
 
                     // Bottom Neighbor
                     if (i + 1 < rows)
                     {
-                        greenGraph[currentIndex].Add(Math.Abs(imageMatrix[i, j].green - imageMatrix[i + 1, j].green));
+                        long Index = (i + 1) * columns + j;
+                        int weight = Math.Abs(imageMatrix[i, j].green - imageMatrix[i + 1, j].green);
+                        greenGraph[currentIndex].Add(new Tuple<long, int>(Index, weight));
                     }
 
                     // Bottom-Right Neighbor
                     if (i + 1 < rows && j + 1 < columns)
                     {
-                        greenGraph[currentIndex].Add(Math.Abs(imageMatrix[i, j].green - imageMatrix[i + 1, j + 1].green));
+                        long Index = (i + 1) * columns + (j + 1);
+                        int weight = Math.Abs(imageMatrix[i, j].green - imageMatrix[i + 1, j + 1].green);
+                        greenGraph[currentIndex].Add(new Tuple<long, int>(Index, weight));
                     }
                 }
 
             }
 
-            /*Console.WriteLine("\nRed Channel Weight Graph:");
-            Console.WriteLine("(Format: Pixel [row,col] → Neighbor Directions with Weights)");
-            Console.WriteLine(new string('=', 60));
-            string[] directions = { "Top-Left", "Top", "Top-Right","Left", "Right","Bottom-Left", "Bottom", "Bottom-Right" };
-            foreach (var entry in redGraph.OrderBy(e => e.Key))
-            {
-                long index = entry.Key;
-                int row = (int)(index / columns);
-                int col = (int)(index % columns);
-                Console.Write($"[{row},{col}]: ");
-                for (int i = 0; i < entry.Value.Count; i++)
-                {
-                    Console.Write($"{directions[i]}({entry.Value[i]})");
-                    if (i < entry.Value.Count - 1) Console.Write(", ");
-                }
+            // Console output to print the list of tuples directly
+            /* Console.WriteLine("\nRed Channel Weight Graph:");
+             Console.WriteLine("(Format: Pixel [row,col] → List of Tuples (Neighbor Index, Weight))");
+             Console.WriteLine(new string('=', 60));
 
-                Console.WriteLine($"\n{new string('-', 60)}");
-            }*/
+             foreach (var entry in greenGraph.OrderBy(e => e.Key))
+             {
+                 long index = entry.Key;
+                 int row = (int)(index / columns);
+                 int col = (int)(index % columns);
+                 Console.Write($"[{row},{col}] → ");
+
+                 // Print the list of tuples (neighbor index, weight)
+                 Console.WriteLine("[ " + string.Join(", ", entry.Value.Select(t => $"({t.Item1}, {t.Item2})")) + " ]");
+
+                 Console.WriteLine(new string('-', 60));
+             }*/
 
             return greenGraph.OrderBy(e => e.Key).ToDictionary(pair => pair.Key, pair => pair.Value);
         }

@@ -50,16 +50,23 @@ namespace ImageTemplate
             double sigma = double.Parse(txtGaussSigma.Text);
             int maskSize = (int)nudMaskSize.Value;
             ImageMatrix = ImageOperations.GaussianFilter1D(ImageMatrix, maskSize, sigma);
+
+            Console.WriteLine("Printing ImageMatrix:");
+            for (int i = 0; i < ImageMatrix.GetLength(0); i++)  // Loop through rows
+            {
+                for (int j = 0; j < ImageMatrix.GetLength(1); j++)  // Loop through columns
+                {
+                    Console.Write((int)ImageMatrix[i, j].blue + "  ");  // Print each element followed by a tab for better formatting
+                }
+                Console.WriteLine("\n");  // Move to the next line after each row
+                Console.WriteLine();
+            }
             GRAPH graph = new GRAPH(ImageMatrix);
 
             // lazm n4ilo 3lashan el doctor hinf5ona 
-            Dictionary<long, List<int>> redWeights = graph.Red_Weight();
-
-            // Print red weight dictionary to console
-            foreach (var pair in redWeights)
-            {
-                Console.WriteLine($"Index: {pair.Key}, Weight: {pair.Value}");
-            }
+            Dictionary<long, List<Tuple<long, int>>> redWeights = graph.Red_Weight();
+            Dictionary<long, List<Tuple<long, int>>> Blue_Weight = graph.Blue_Weight();
+            Dictionary<long, List<Tuple<long, int>>> Green_Weight = graph.Green_Weight();
 
             MessageBox.Show("Red weights printed to console!");
             ImageOperations.DisplayImage(ImageMatrix, pictureBox2);
