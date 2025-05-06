@@ -78,8 +78,8 @@ namespace ImageTemplate
             for (int i = 0; i < redComponents.Count; i++)
             {
                 Console.WriteLine($"Component {i}:");
-                Console.WriteLine("Inner Pixels: " + string.Join(", ", redComponents[i].InnerPixels));
-                Console.WriteLine("Boundaries: " + string.Join(", ", redComponents[i].Boundaries));
+                Console.WriteLine("Inner Pixels: " + string.Join(", ", redComponents[i].inner_pixels));
+                Console.WriteLine("Boundaries: " + string.Join(", ", redComponents[i].boundaries));
                 Console.WriteLine(new string('-', 40));
             }
 
@@ -87,8 +87,8 @@ namespace ImageTemplate
             for (int i = 0; i < greenComponents.Count; i++)
             {
                 Console.WriteLine($"Component {i}:");
-                Console.WriteLine("Inner Pixels: " + string.Join(", ", greenComponents[i].InnerPixels));
-                Console.WriteLine("Boundaries: " + string.Join(", ", greenComponents[i].Boundaries));
+                Console.WriteLine("Inner Pixels: " + string.Join(", ", greenComponents[i].inner_pixels));
+                Console.WriteLine("Boundaries: " + string.Join(", ", greenComponents[i].boundaries));
                 Console.WriteLine(new string('-', 40));
             }
 
@@ -96,8 +96,8 @@ namespace ImageTemplate
             for (int i = 0; i < blueComponents.Count; i++)
             {
                 Console.WriteLine($"Component {i}:");
-                Console.WriteLine("Inner Pixels: " + string.Join(", ", blueComponents[i].InnerPixels));
-                Console.WriteLine("Boundaries: " + string.Join(", ", blueComponents[i].Boundaries));
+                Console.WriteLine("Inner Pixels: " + string.Join(", ", blueComponents[i].inner_pixels));
+                Console.WriteLine("Boundaries: " + string.Join(", ", blueComponents[i].boundaries));
                 Console.WriteLine(new string('-', 40));
             }
 
