@@ -4,12 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-
 namespace ImageTemplate
 {
     public class GRAPH
     {
-
         private RGBPixel[,] imageMatrix;
 
         public GRAPH(RGBPixel[,] matrix)

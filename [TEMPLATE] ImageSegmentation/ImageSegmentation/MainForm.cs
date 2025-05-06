@@ -5,7 +5,8 @@ using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
-using System.Runtime.InteropServices; // lazm n4ilo 3lashan el doctor hinf5ona 
+using System.Runtime.InteropServices;
+using System.Linq; // lazm n4ilo 3lashan el doctor hinf5ona 
 
 namespace ImageTemplate
 {
@@ -68,10 +69,41 @@ namespace ImageTemplate
             Dictionary<long, List<Tuple<long, int>>> Blue_Weight = graph.Blue_Weight();
             Dictionary<long, List<Tuple<long, int>>> Green_Weight = graph.Green_Weight();
 
+            // lazm n4ilo 3lashan el doctor hinf5ona 
+            // Segmentation part
+            Segmentation segmentation = new Segmentation(ImageMatrix);
+            var (redComponents, greenComponents, blueComponents) = segmentation.SegmentImage();
+
+            Console.WriteLine("\nRed Segmentation:");
+            for (int i = 0; i < redComponents.Count; i++)
+            {
+                Console.WriteLine($"Component {i}:");
+                Console.WriteLine("Inner Pixels: " + string.Join(", ", redComponents[i].InnerPixels));
+                Console.WriteLine("Boundaries: " + string.Join(", ", redComponents[i].Boundaries));
+                Console.WriteLine(new string('-', 40));
+            }
+
+            Console.WriteLine("\nGreen Segmentation:");
+            for (int i = 0; i < greenComponents.Count; i++)
+            {
+                Console.WriteLine($"Component {i}:");
+                Console.WriteLine("Inner Pixels: " + string.Join(", ", greenComponents[i].InnerPixels));
+                Console.WriteLine("Boundaries: " + string.Join(", ", greenComponents[i].Boundaries));
+                Console.WriteLine(new string('-', 40));
+            }
+
+            Console.WriteLine("\nBlue Segmentation:");
+            for (int i = 0; i < blueComponents.Count; i++)
+            {
+                Console.WriteLine($"Component {i}:");
+                Console.WriteLine("Inner Pixels: " + string.Join(", ", blueComponents[i].InnerPixels));
+                Console.WriteLine("Boundaries: " + string.Join(", ", blueComponents[i].Boundaries));
+                Console.WriteLine(new string('-', 40));
+            }
+
             MessageBox.Show("Red weights printed to console!");
             ImageOperations.DisplayImage(ImageMatrix, pictureBox2);
         }
-
 
 
         private void MainForm_Load(object sender, EventArgs e)
