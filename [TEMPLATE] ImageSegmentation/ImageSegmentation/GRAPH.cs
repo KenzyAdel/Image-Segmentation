@@ -22,19 +22,23 @@ namespace ImageTemplate
             Dictionary<long, List<Tuple<long, int>>> redGraph = new Dictionary<long, List<Tuple<long, int>>>();
             int rows = imageMatrix.GetLength(0);
             int columns = imageMatrix.GetLength(1);
-
+             
             for (int i = 0; i < rows; i++)
             {
                 for (int j = 0; j < columns; j++)
                 {
                     long currentIndex = i * columns + j;
+
+                    RGBPixel currentPixel = imageMatrix[i, j];
+
                     redGraph[currentIndex] = new List<Tuple<long, int>>();
+
 
                     // Top-Left Neighbor
                     if (i - 1 >= 0 && j - 1 >= 0)
                     {
                         long Index = (i - 1) * columns + (j - 1);
-                        int weight = Math.Abs(imageMatrix[i, j].red - imageMatrix[i - 1, j - 1].red);
+                        int weight = Math.Abs(currentPixel.red - imageMatrix[i - 1, j - 1].red);
                         redGraph[currentIndex].Add(new Tuple<long, int>(Index, weight));
 
                     }
@@ -43,7 +47,7 @@ namespace ImageTemplate
                     if (i - 1 >= 0)
                     {
                         long Index = (i - 1) * columns + j;
-                        int weight = Math.Abs(imageMatrix[i, j].red - imageMatrix[i - 1, j].red);
+                        int weight = Math.Abs(currentPixel.red - imageMatrix[i - 1, j].red);
                         redGraph[currentIndex].Add(new Tuple<long, int>(Index, weight));
                     }
 
@@ -51,7 +55,7 @@ namespace ImageTemplate
                     if (i - 1 >= 0 && j + 1 < columns)
                     {
                         long Index = (i - 1) * columns + (j + 1);
-                        int weight = Math.Abs(imageMatrix[i, j].red - imageMatrix[i - 1, j + 1].red);
+                        int weight = Math.Abs(currentPixel.red - imageMatrix[i - 1, j + 1].red);
                         redGraph[currentIndex].Add(new Tuple<long, int>(Index, weight));
                     }
 
@@ -59,7 +63,7 @@ namespace ImageTemplate
                     if (j - 1 >= 0)
                     {
                         long Index = i * columns + (j - 1);
-                        int weight = Math.Abs(imageMatrix[i, j].red - imageMatrix[i, j - 1].red);
+                        int weight = Math.Abs(currentPixel.red - imageMatrix[i, j - 1].red);
                         redGraph[currentIndex].Add(new Tuple<long, int>(Index, weight));
                     }
 
@@ -67,7 +71,7 @@ namespace ImageTemplate
                     if (j + 1 < columns)
                     {
                         long Index = i * columns + (j + 1);
-                        int weight = Math.Abs(imageMatrix[i, j].red - imageMatrix[i, j + 1].red);
+                        int weight = Math.Abs(currentPixel.red - imageMatrix[i, j + 1].red);
                         redGraph[currentIndex].Add(new Tuple<long, int>(Index, weight));
                     }
 
@@ -75,7 +79,7 @@ namespace ImageTemplate
                     if (i + 1 < rows && j - 1 >= 0)
                     {
                         long Index = (i + 1) * columns + (j - 1);
-                        int weight = Math.Abs(imageMatrix[i, j].red - imageMatrix[i + 1, j - 1].red);
+                        int weight = Math.Abs(currentPixel.red - imageMatrix[i + 1, j - 1].red);
                         redGraph[currentIndex].Add(new Tuple<long, int>(Index, weight));
                     }
 
@@ -83,7 +87,7 @@ namespace ImageTemplate
                     if (i + 1 < rows)
                     {
                         long Index = (i + 1) * columns + j;
-                        int weight = Math.Abs(imageMatrix[i, j].red - imageMatrix[i + 1, j].red);
+                        int weight = Math.Abs(currentPixel.red - imageMatrix[i + 1, j].red);
                         redGraph[currentIndex].Add(new Tuple<long, int>(Index, weight));
                     }
 
@@ -91,7 +95,7 @@ namespace ImageTemplate
                     if (i + 1 < rows && j + 1 < columns)
                     {
                         long Index = (i + 1) * columns + (j + 1);
-                        int weight = Math.Abs(imageMatrix[i, j].red - imageMatrix[i + 1, j + 1].red);
+                        int weight = Math.Abs(currentPixel.red - imageMatrix[i + 1, j + 1].red);
                         redGraph[currentIndex].Add(new Tuple<long, int>(Index, weight));
                     }
                 }
@@ -131,13 +135,16 @@ namespace ImageTemplate
                 for (int j = 0; j < columns; j++)
                 {
                     long currentIndex = i * columns + j;
+
+                    RGBPixel currentPixel = new RGBPixel();
+
                     blueGraph[currentIndex] = new List<Tuple<long, int>>();
 
                     // Top-Left Neighbor
                     if (i - 1 >= 0 && j - 1 >= 0)
                     {
                         long Index = (i - 1) * columns + (j - 1);
-                        int weight = Math.Abs(imageMatrix[i, j].blue - imageMatrix[i - 1, j - 1].blue);
+                        int weight = Math.Abs(currentPixel.blue - imageMatrix[i - 1, j - 1].blue);
                         blueGraph[currentIndex].Add(new Tuple<long, int>(Index, weight));
                     }
 
@@ -145,7 +152,7 @@ namespace ImageTemplate
                     if (i - 1 >= 0)
                     {
                         long Index = (i - 1) * columns + j;
-                        int weight = Math.Abs(imageMatrix[i, j].blue - imageMatrix[i - 1, j].blue);
+                        int weight = Math.Abs(currentPixel.blue - imageMatrix[i - 1, j].blue);
                         blueGraph[currentIndex].Add(new Tuple<long, int>(Index, weight));
                     }
 
@@ -153,7 +160,7 @@ namespace ImageTemplate
                     if (i - 1 >= 0 && j + 1 < columns)
                     {
                         long Index = (i - 1) * columns + (j + 1);
-                        int weight = Math.Abs(imageMatrix[i, j].blue - imageMatrix[i - 1, j + 1].blue);
+                        int weight = Math.Abs(currentPixel.blue - imageMatrix[i - 1, j + 1].blue);
                         blueGraph[currentIndex].Add(new Tuple<long, int>(Index, weight));
                     }
 
@@ -161,7 +168,7 @@ namespace ImageTemplate
                     if (j - 1 >= 0)
                     {
                         long Index = i * columns + (j - 1);
-                        int weight = Math.Abs(imageMatrix[i, j].blue - imageMatrix[i, j - 1].blue);
+                        int weight = Math.Abs(currentPixel.blue - imageMatrix[i, j - 1].blue);
                         blueGraph[currentIndex].Add(new Tuple<long, int>(Index, weight));
                     }
 
@@ -169,7 +176,7 @@ namespace ImageTemplate
                     if (j + 1 < columns)
                     {
                         long Index = i * columns + (j + 1);
-                        int weight = Math.Abs(imageMatrix[i, j].blue - imageMatrix[i, j + 1].blue);
+                        int weight = Math.Abs(currentPixel.blue - imageMatrix[i, j + 1].blue);
                         blueGraph[currentIndex].Add(new Tuple<long, int>(Index, weight));
                     }
 
@@ -177,7 +184,7 @@ namespace ImageTemplate
                     if (i + 1 < rows && j - 1 >= 0)
                     {
                         long Index = (i + 1) * columns + (j - 1);
-                        int weight = Math.Abs(imageMatrix[i, j].blue - imageMatrix[i + 1, j - 1].blue);
+                        int weight = Math.Abs(currentPixel.blue - imageMatrix[i + 1, j - 1].blue);
                         blueGraph[currentIndex].Add(new Tuple<long, int>(Index, weight));
                     }
 
@@ -185,7 +192,7 @@ namespace ImageTemplate
                     if (i + 1 < rows)
                     {
                         long Index = (i + 1) * columns + j;
-                        int weight = Math.Abs(imageMatrix[i, j].blue - imageMatrix[i + 1, j].blue);
+                        int weight = Math.Abs(currentPixel.blue - imageMatrix[i + 1, j].blue);
                         blueGraph[currentIndex].Add(new Tuple<long, int>(Index, weight));
                     }
 
@@ -193,7 +200,7 @@ namespace ImageTemplate
                     if (i + 1 < rows && j + 1 < columns)
                     {
                         long Index = (i + 1) * columns + (j + 1);
-                        int weight = Math.Abs(imageMatrix[i, j].blue - imageMatrix[i + 1, j + 1].blue);
+                        int weight = Math.Abs(currentPixel.blue - imageMatrix[i + 1, j + 1].blue);
                         blueGraph[currentIndex].Add(new Tuple<long, int>(Index, weight));
                     }
                 }
@@ -233,13 +240,16 @@ namespace ImageTemplate
                 for (int j = 0; j < columns; j++)
                 {
                     long currentIndex = i * columns + j;
+
+                    RGBPixel currentPixel = imageMatrix[i, j];
+
                     greenGraph[currentIndex] = new List<Tuple<long, int>>();
 
                     // Top-Left Neighbor
                     if (i - 1 >= 0 && j - 1 >= 0)
                     {
                         long Index = (i - 1) * columns + (j - 1);
-                        int weight = Math.Abs(imageMatrix[i, j].green - imageMatrix[i - 1, j - 1].green);
+                        int weight = Math.Abs(currentPixel.green - imageMatrix[i - 1, j - 1].green);
                         greenGraph[currentIndex].Add(new Tuple<long, int>(Index, weight));
                     }
 
@@ -247,7 +257,7 @@ namespace ImageTemplate
                     if (i - 1 >= 0)
                     {
                         long Index = (i - 1) * columns + j;
-                        int weight = Math.Abs(imageMatrix[i, j].green - imageMatrix[i - 1, j].green);
+                        int weight = Math.Abs(currentPixel.green - imageMatrix[i - 1, j].green);
                         greenGraph[currentIndex].Add(new Tuple<long, int>(Index, weight));
                     }
 
@@ -255,7 +265,7 @@ namespace ImageTemplate
                     if (i - 1 >= 0 && j + 1 < columns)
                     {
                         long Index = (i - 1) * columns + (j + 1);
-                        int weight = Math.Abs(imageMatrix[i, j].green - imageMatrix[i - 1, j + 1].green);
+                        int weight = Math.Abs(currentPixel.green - imageMatrix[i - 1, j + 1].green);
                         greenGraph[currentIndex].Add(new Tuple<long, int>(Index, weight));
                     }
 
@@ -263,7 +273,7 @@ namespace ImageTemplate
                     if (j - 1 >= 0)
                     {
                         long Index = i * columns + (j - 1);
-                        int weight = Math.Abs(imageMatrix[i, j].green - imageMatrix[i, j - 1].green);
+                        int weight = Math.Abs(currentPixel.green - imageMatrix[i, j - 1].green);
                         greenGraph[currentIndex].Add(new Tuple<long, int>(Index, weight));
                     }
 
@@ -271,7 +281,7 @@ namespace ImageTemplate
                     if (j + 1 < columns)
                     {
                         long Index = i * columns + (j + 1);
-                        int weight = Math.Abs(imageMatrix[i, j].green - imageMatrix[i, j + 1].green);
+                        int weight = Math.Abs(currentPixel.green - imageMatrix[i, j + 1].green);
                         greenGraph[currentIndex].Add(new Tuple<long, int>(Index, weight));
                     }
 
@@ -279,7 +289,7 @@ namespace ImageTemplate
                     if (i + 1 < rows && j - 1 >= 0)
                     {
                         long Index = (i + 1) * columns + (j - 1);
-                        int weight = Math.Abs(imageMatrix[i, j].green - imageMatrix[i + 1, j - 1].green);
+                        int weight = Math.Abs(currentPixel.green - imageMatrix[i + 1, j - 1].green);
                         greenGraph[currentIndex].Add(new Tuple<long, int>(Index, weight));
                     }
 
@@ -287,7 +297,7 @@ namespace ImageTemplate
                     if (i + 1 < rows)
                     {
                         long Index = (i + 1) * columns + j;
-                        int weight = Math.Abs(imageMatrix[i, j].green - imageMatrix[i + 1, j].green);
+                        int weight = Math.Abs(currentPixel.green - imageMatrix[i + 1, j].green);
                         greenGraph[currentIndex].Add(new Tuple<long, int>(Index, weight));
                     }
 
@@ -295,7 +305,7 @@ namespace ImageTemplate
                     if (i + 1 < rows && j + 1 < columns)
                     {
                         long Index = (i + 1) * columns + (j + 1);
-                        int weight = Math.Abs(imageMatrix[i, j].green - imageMatrix[i + 1, j + 1].green);
+                        int weight = Math.Abs(currentPixel.green - imageMatrix[i + 1, j + 1].green);
                         greenGraph[currentIndex].Add(new Tuple<long, int>(Index, weight));
                     }
                 }
