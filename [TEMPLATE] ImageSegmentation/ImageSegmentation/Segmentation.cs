@@ -165,7 +165,8 @@ namespace ImageTemplate
             //return componentsList;
         }
 
-
+        public Dictionary<long, List<long>> Remaining_component= new Dictionary<long, List<long>>();
+        long RID = 0;
         private Dictionary<long, int[]> GetCombinedComponents()
         {
             if (_componentPixels.Count == 0)
@@ -179,17 +180,10 @@ namespace ImageTemplate
 
                     long componentId = redId;
                     bool isValidComponent = false;
-                    if ((redId == greenId && redId == blueId) || // All match
-                        (redId == greenId && redId != blueId)) // Red and Green
+                    if ((redId == greenId && redId == blueId)) // All match
                     {
                         isValidComponent = true;
                         componentId = redId;
-                    }
-                    else if((redId == blueId && redId != greenId) || // Red and Blue
-                        (greenId == blueId && greenId != redId)) // Green and Blue
-                    {
-                        isValidComponent = true;
-                        componentId = blueId;
                     }
 
                     if (isValidComponent)
@@ -198,10 +192,24 @@ namespace ImageTemplate
                             _componentPixels[componentId] = new List<long>();
                         if (!_componentPixels[componentId].Contains(pixel))
                             _componentPixels[componentId].Add(pixel);
+
                     }
                     else
                     {
-                        _componentPixels[-1].Add(pixel);
+
+                        if (redId == greenId && redId != blueId)
+                            RID = blueId;
+                        else if (redId == blueId && redId != greenId )// Red and Green
+                            RID=greenId;
+                        else if ((greenId == blueId && greenId != redId))
+                            RID = redId;
+                        
+                        if (!Remaining_component.ContainsKey(RID))
+                            Remaining_component[RID] = new List<long>();
+
+                        Remaining_component[RID].Add(pixel);
+                        
+                        
                     }
                 }
             }
