@@ -50,7 +50,7 @@ namespace ImageTemplate
         {
             double sigma = double.Parse(txtGaussSigma.Text);
             int maskSize = (int)nudMaskSize.Value;
-            ImageMatrix = ImageOperations.GaussianFilter1D(ImageMatrix, maskSize, sigma);
+            //ImageMatrix = ImageOperations.GaussianFilter1D(ImageMatrix, maskSize, sigma);
 
             /*Console.WriteLine("Printing ImageMatrix:");
             for (int i = 0; i < ImageMatrix.GetLength(0); i++)  // Loop through rows
@@ -109,11 +109,10 @@ namespace ImageTemplate
                 // Collect pixels with non-zero intensities and count them
                 for (long pixel = 0; pixel < intensities.Length; pixel++)
                 {
-                    if (intensities[pixel] != 0)
-                    {
+                    
                         pixels.Add(pixel);
                         pixelCount++;
-                    }
+                    
                 }
 
                 // Print component details

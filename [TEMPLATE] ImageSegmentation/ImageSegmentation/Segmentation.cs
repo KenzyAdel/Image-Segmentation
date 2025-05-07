@@ -105,7 +105,7 @@ namespace ImageTemplate
             //List<Components> componentsList = new List<Components>();
             bool[] visited = new bool[M];
             int Id = 0;
-            const int weightThreshold = 15;
+            const int weightThreshold = 1;
 
             for (int pixel = 0; pixel < M; pixel++)
             {
@@ -116,8 +116,7 @@ namespace ImageTemplate
                 queue.Enqueue(pixel);
                 visited[pixel] = true;
 
-                //int intensity = GetIntensityForPixel(pixel, color);
-                //component.AddInnerPixel(pixel, intensity);
+                
                 if (color == "red") redMap[pixel] = Id;
                 else if (color == "green") greenMap[pixel] = Id;
                 else if (color == "blue") blueMap[pixel] = Id;
@@ -211,10 +210,11 @@ namespace ImageTemplate
             foreach (var component in _componentPixels)
             {
                 long componentId = component.Key;
-                int[] intensities = new int[M]; 
+                int[] intensities = new int[component.Value.Count];
+                int i = 0;
                 foreach (long pixel in component.Value)
                 {
-                    intensities[pixel] = GetIntensityForPixel((int)pixel, "red");
+                    intensities[i++] = GetIntensityForPixel((int)pixel, "red");
                 }
                 componentIntensities[componentId] = intensities;
             }
