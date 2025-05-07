@@ -52,7 +52,7 @@ namespace ImageTemplate
             int maskSize = (int)nudMaskSize.Value;
             ImageMatrix = ImageOperations.GaussianFilter1D(ImageMatrix, maskSize, sigma);
 
-            Console.WriteLine("Printing ImageMatrix:");
+            /*Console.WriteLine("Printing ImageMatrix:");
             for (int i = 0; i < ImageMatrix.GetLength(0); i++)  // Loop through rows
             {
                 for (int j = 0; j < ImageMatrix.GetLength(1); j++)  // Loop through columns
@@ -61,7 +61,7 @@ namespace ImageTemplate
                 }
                 Console.WriteLine("\n");  // Move to the next line after each row
                 Console.WriteLine();
-            }
+            }*/
             GRAPH graph = new GRAPH(ImageMatrix);
 
             // lazm n4ilo 3lashan el doctor hinf5ona 
@@ -71,38 +71,82 @@ namespace ImageTemplate
 
             // lazm n4ilo 3lashan el doctor hinf5ona 
             // Segmentation part
+
+            /* Segmentation segmentation = new Segmentation(ImageMatrix);
+             var (redMap, greenMap, blueMap) = segmentation.SegmentImage();
+
+            // Count component IDs
+            Console.WriteLine("Red Component Counts:");
+            PrintComponentCounts(redMap);
+
+            Console.WriteLine("Green Component Counts:");
+            PrintComponentCounts(greenMap);
+
+            Console.WriteLine("Blue Component Counts:");
+            PrintComponentCounts(blueMap);*/
+
             Segmentation segmentation = new Segmentation(ImageMatrix);
-            var (redComponents, greenComponents, blueComponents) = segmentation.SegmentImage();
+            Dictionary<long, int[]> components = segmentation.SegmentImage();
 
-            Console.WriteLine("\nRed Segmentation:");
-            for (int i = 0; i < redComponents.Count; i++)
-            {
-                Console.WriteLine($"Component {i}:");
-                Console.WriteLine("Inner Pixels: " + string.Join(", ", redComponents[i].inner_pixels));
-                Console.WriteLine("Boundaries: " + string.Join(", ", redComponents[i].boundaries));
-                Console.WriteLine(new string('-', 40));
-            }
+            Console.WriteLine("Red Component Counts:");
+            PrintComponentCounts(segmentation.redMap);
 
-            Console.WriteLine("\nGreen Segmentation:");
-            for (int i = 0; i < greenComponents.Count; i++)
-            {
-                Console.WriteLine($"Component {i}:");
-                Console.WriteLine("Inner Pixels: " + string.Join(", ", greenComponents[i].inner_pixels));
-                Console.WriteLine("Boundaries: " + string.Join(", ", greenComponents[i].boundaries));
-                Console.WriteLine(new string('-', 40));
-            }
+            Console.WriteLine("Green Component Counts:");
+            PrintComponentCounts(segmentation.greenMap);
 
-            Console.WriteLine("\nBlue Segmentation:");
-            for (int i = 0; i < blueComponents.Count; i++)
+            Console.WriteLine("Blue Component Counts:");
+            PrintComponentCounts(segmentation.blueMap);
+
+            // Print all components and their pixel counts
+            Console.WriteLine("\n=== Components and Pixel Counts ===");
+            foreach (var component in components)
             {
-                Console.WriteLine($"Component {i}:");
-                Console.WriteLine("Inner Pixels: " + string.Join(", ", blueComponents[i].inner_pixels));
-                Console.WriteLine("Boundaries: " + string.Join(", ", blueComponents[i].boundaries));
-                Console.WriteLine(new string('-', 40));
+                long componentId = component.Key;
+                int[] intensities = component.Value;
+                List<long> pixels = new List<long>();
+                int pixelCount = 0;
+
+                // Collect pixels with non-zero intensities and count them
+                for (long pixel = 0; pixel < intensities.Length; pixel++)
+                {
+                    if (intensities[pixel] != 0)
+                    {
+                        pixels.Add(pixel);
+                        pixelCount++;
+                    }
+                }
+
+                // Print component details
+                Console.Write($"Component {componentId}: ");
+                //bool first = true;
+                /*foreach (long pixel in pixels)
+                {
+                    if (!first) Console.Write(", ");
+                    Console.Write($"arr[{pixel}] = {intensities[pixel]}");
+                    first = false;
+                }*/
+                Console.WriteLine($" (Count: {pixelCount})");
             }
 
             MessageBox.Show("Red weights printed to console!");
             ImageOperations.DisplayImage(ImageMatrix, pictureBox2);
+        }
+
+        private void PrintComponentCounts(long[] map)
+        {
+            Dictionary<long, int> countMap = new Dictionary<long, int>();
+
+            foreach (long id in map)
+            {
+                if (!countMap.ContainsKey(id))
+                    countMap[id] = 0;
+                countMap[id]++;
+            }
+
+            foreach (var kvp in countMap.OrderBy(k => k.Key))
+            {
+                Console.WriteLine($"Component ID {kvp.Key}: {kvp.Value} pixels");
+            }
         }
 
 
