@@ -5,7 +5,7 @@ using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
-using System.Runtime.InteropServices; // lazm n4ilo 3lashan el doctor hinf5ona 
+using System.Runtime.InteropServices; // lazm n4ilo 3lashan el doctor hinfo5na 
 
 namespace ImageTemplate
 {
@@ -18,18 +18,13 @@ namespace ImageTemplate
         {
             InitializeComponent();
 
-            // lazm n4ilo 3lashan el doctor hinf5ona 
+            // lazm n4ilo 3lashan el doctor hinfo5na 
             AllocConsole();
 
 
         }
 
         RGBPixel[,] ImageMatrix;
-
-
-        // lazm n4ilo 3lashan el doctor hinf5ona 
-
-
 
         private void btnOpen_Click(object sender, EventArgs e)
         {
@@ -51,24 +46,31 @@ namespace ImageTemplate
             int maskSize = (int)nudMaskSize.Value;
             ImageMatrix = ImageOperations.GaussianFilter1D(ImageMatrix, maskSize, sigma);
 
+            // lazm n4ilo 3lashan el doctor hinfo5na
+            // Prints the 2-D array of the image
             Console.WriteLine("Printing ImageMatrix:");
-            for (int i = 0; i < ImageMatrix.GetLength(0); i++)  // Loop through rows
+            for (int i = 0; i < ImageMatrix.GetLength(0); i++)
             {
-                for (int j = 0; j < ImageMatrix.GetLength(1); j++)  // Loop through columns
+                for (int j = 0; j < ImageMatrix.GetLength(1); j++)
                 {
-                    Console.Write((int)ImageMatrix[i, j].blue + "  ");  // Print each element followed by a tab for better formatting
+                    Console.Write((int)ImageMatrix[i, j].blue + "  ");
                 }
-                Console.WriteLine("\n");  // Move to the next line after each row
+                Console.WriteLine("\n");
                 Console.WriteLine();
             }
+
+
             GRAPH graph = new GRAPH(ImageMatrix);
 
-            // lazm n4ilo 3lashan el doctor hinf5ona 
-            Dictionary<long, List<Tuple<long, int>>> redWeights = graph.Red_Weight();
-            Dictionary<long, List<Tuple<long, int>>> Blue_Weight = graph.Blue_Weight();
-            Dictionary<long, List<Tuple<long, int>>> Green_Weight = graph.Green_Weight();
+            // lazm n4ilo 3lashan el doctor hinfo5na 
 
-            MessageBox.Show("Red weights printed to console!");
+            Dictionary<long, List<Tuple<long, int>>> redGraph = new Dictionary<long, List<Tuple<long, int>>>();
+            Dictionary<long, List<Tuple<long, int>>> greenGraph = new Dictionary<long, List<Tuple<long, int>>>();
+            Dictionary<long, List<Tuple<long, int>>> blueGraph = new Dictionary<long, List<Tuple<long, int>>>();
+
+            graph.Build_Graph_Weights(redGraph, greenGraph, blueGraph);
+
+            MessageBox.Show("Blue weights printed to console!");
             ImageOperations.DisplayImage(ImageMatrix, pictureBox2);
         }
 
