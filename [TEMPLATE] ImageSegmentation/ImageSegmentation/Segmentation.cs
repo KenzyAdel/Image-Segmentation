@@ -41,7 +41,7 @@ namespace ImageTemplate
         private RGBPixel[,] imageMatrix;
         private int rows;
         private int columns;
-        private long M;
+        public long M;
         public long[] redMap { get; private set; }
         public long[] greenMap { get; private set; }
         public long[] blueMap { get; private set; }
@@ -167,11 +167,10 @@ namespace ImageTemplate
 
         public Dictionary<long, List<long>> Remaining_component= new Dictionary<long, List<long>>();
         long RID = 0;
-        private Dictionary<long, int[]> GetCombinedComponents()
+        private Dictionary<long, List<long>> GetCombinedComponents()
         {
             if (_componentPixels.Count == 0)
             {
-                _componentPixels[-1] = new List<long>();
                 for (long pixel = 0; pixel < M; pixel++)
                 {
                     long redId = redMap[pixel];
@@ -198,11 +197,11 @@ namespace ImageTemplate
                     {
 
                         if (redId == greenId && redId != blueId)
-                            RID = blueId;
+                            RID = blueId*211;
                         else if (redId == blueId && redId != greenId )// Red and Green
-                            RID=greenId;
+                            RID = greenId*-211;
                         else if ((greenId == blueId && greenId != redId))
-                            RID = redId;
+                            RID = redId*-1;
                         
                         if (!Remaining_component.ContainsKey(RID))
                             Remaining_component[RID] = new List<long>();
@@ -212,32 +211,42 @@ namespace ImageTemplate
                         
                     }
                 }
+                int key = -1;
+                foreach(var v in  _componentPixels)
+                {
+                    if(!Remaining_component.ContainsKey(v.Key))
+                        Remaining_component.Add(v.Key, v.Value);
+                    else
+                    {
+                        Remaining_component.Add(key, v.Value);
+                    }
+                }
             }
 
-            Dictionary<long, int[]> componentIntensities = new Dictionary<long, int[]>();
+           /* Dictionary<long, List<int>> componentIntensities = new Dictionary<long, List<int>>();
             foreach (var component in _componentPixels)
             {
                 long componentId = component.Key;
-                int[] intensities = new int[component.Value.Count];
+                List<int> intensities = new List<int>();
                 int i = 0;
                 foreach (long pixel in component.Value)
                 {
-                    intensities[i++] = GetIntensityForPixel((int)pixel, "red");
+                    intensities.Add(GetIntensityForPixel((int)pixel, "red"));
                 }
                 componentIntensities[componentId] = intensities;
-            }
+            }*/
 
-            return componentIntensities;
+            return Remaining_component;
         }
-        public Dictionary<long, int[]> SegmentImage()
+        public Dictionary<long, List<long>> SegmentImage(Dictionary<long, List<Tuple<long, int>>> red, Dictionary<long, List<Tuple<long, int>>> blue, Dictionary<long, List<Tuple<long, int>>>green)
         {
-            GRAPH graphBuilder = new GRAPH(imageMatrix);
-
-            var redGraph = graphBuilder.Red_Weight();
-            var greenGraph = graphBuilder.Green_Weight();
-            var blueGraph = graphBuilder.Blue_Weight();
+            
+            var redGraph = red;
+            var greenGraph = green;
+            var blueGraph = blue;
 
             _componentPixels.Clear();
+        
             Segment(redGraph, "red");
             Segment(greenGraph, "green");
             Segment(blueGraph, "blue");

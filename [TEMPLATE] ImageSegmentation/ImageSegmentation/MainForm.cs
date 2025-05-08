@@ -65,7 +65,7 @@ namespace ImageTemplate
             GRAPH graph = new GRAPH(ImageMatrix);
 
             // lazm n4ilo 3lashan el doctor hinf5ona 
-            Dictionary<long, List<Tuple<long, int>>> redWeights = graph.Red_Weight();
+            Dictionary<long, List<Tuple<long, int>>> Red_Weights = graph.Red_Weight();
             Dictionary<long, List<Tuple<long, int>>> Blue_Weight = graph.Blue_Weight();
             Dictionary<long, List<Tuple<long, int>>> Green_Weight = graph.Green_Weight();
 
@@ -86,7 +86,9 @@ namespace ImageTemplate
             PrintComponentCounts(blueMap);*/
 
             Segmentation segmentation = new Segmentation(ImageMatrix);
-            Dictionary<long, int[]> components = segmentation.SegmentImage();
+            Dictionary<long, List<long>> components = segmentation.SegmentImage(Red_Weights,Blue_Weight,Green_Weight);
+            Internal_Difference internal_Difference = new Internal_Difference(segmentation.M);
+            Dictionary<Tuple<long, long>, int> bounderies_between_components = internal_Difference.Difference_between_2_components(components,segmentation.M, Red_Weights, Green_Weight, Blue_Weight);
 
             Console.WriteLine("Red Component Counts:");
             PrintComponentCounts(segmentation.redMap);
@@ -102,17 +104,16 @@ namespace ImageTemplate
             foreach (var component in components)
             {
                 long componentId = component.Key;
-                int[] intensities = component.Value;
                 List<long> pixels = new List<long>();
                 int pixelCount = 0;
 
                 // Collect pixels with non-zero intensities and count them
-                for (long pixel = 0; pixel < intensities.Length; pixel++)
+                for (long pixel = 0; pixel < component.Value.Count; pixel++)
                 {
-                    
-                        pixels.Add(pixel);
-                        pixelCount++;
-                    
+
+                    pixels.Add(pixel);
+                    pixelCount++;
+
                 }
 
                 // Print component details
@@ -125,9 +126,11 @@ namespace ImageTemplate
                     first = false;
                 }*/
                 Console.WriteLine($" (Count: {pixelCount})");
-            }
+                //}
 
-            MessageBox.Show("Red weights printed to console!");
+
+            }
+           // MessageBox.Show("Red weights printed to console!");
             ImageOperations.DisplayImage(ImageMatrix, pictureBox2);
         }
 

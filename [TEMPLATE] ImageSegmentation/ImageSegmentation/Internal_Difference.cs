@@ -11,7 +11,7 @@ namespace ImageTemplate
     public class Internal_Difference
     {
         int[] member;
-
+        
         public Internal_Difference(long size)
         {
             member = new int[size];
@@ -44,7 +44,7 @@ namespace ImageTemplate
             HashSet<long> componentSet = new HashSet<long>(component);
             var uniqueEdges = new List<(int v1, int v2, int w)>();
             var addedEdges = new HashSet<(int, int)>();
-
+            int k = 1;
             foreach (var node in component)
             {
                 foreach (var neighbor in graph[node])
@@ -84,8 +84,10 @@ namespace ImageTemplate
             {
                 if (Find_set(edge.v1) != Find_set(edge.v2))
                 {
+
                     Union(edge.v1, edge.v2);
                     maxEdgeWeight = Math.Max(maxEdgeWeight, edge.w);
+
                     edgesAdded++;
                     if (edgesAdded == vertices - 1)
                         break;
@@ -121,8 +123,66 @@ namespace ImageTemplate
                 internalDifferences[compId] = (maxInternalDifference, component);
                 compId++;
             }
-
             return internalDifferences;
+        }
+        public Dictionary<Tuple<long, long>, int> Difference_between_2_components(Dictionary<long, List<long>> component, long size, Dictionary<long, List<Tuple<long, int>>> redGraph,
+         Dictionary<long, List<Tuple<long, int>>> greenGraph,
+         Dictionary<long, List<Tuple<long, int>>> blueGraph)//change it to list of list of components
+        {
+            long[] Root = new long[size];
+            foreach (var c in component)
+            {
+                long i = c.Key;
+               foreach(var numofPixel in c.Value)
+               {
+                    Root[numofPixel] = i;
+               }
+          
+            }
+
+            Dictionary<Tuple<long, long>, int> bounderies_between_components = new Dictionary<Tuple<long, long>, int>();
+
+
+            foreach(var parent in redGraph.Keys)
+            {
+                long current_root = Root[parent];
+                int i = 0;
+                foreach (var child in redGraph[parent])
+                {
+                    long neighbor_root = Root[child.Item1];
+
+                    int red_weight = redGraph[parent][i].Item2;
+                    int blue_weight = blueGraph[parent][i].Item2;
+                    int green_weight = greenGraph[parent][i].Item2;
+                    i++;
+                    int weight = Math.Max(red_weight, Math.Max(blue_weight, green_weight));
+                    if (neighbor_root == current_root)
+                        continue;
+
+                    Tuple<long, long> key;
+                    if(current_root<neighbor_root)
+                        key = Tuple.Create(current_root,neighbor_root);
+                    else
+                        key = Tuple.Create(neighbor_root,current_root);
+
+                    if (!bounderies_between_components.ContainsKey(key))
+                    {
+                        bounderies_between_components[key] = weight;
+                    }
+                    else
+                    {
+                        if (weight < bounderies_between_components[key])
+                            bounderies_between_components[key] = weight;
+                    }
+                }
+            }
+            Console.WriteLine("====================Bounderies=====================");
+            foreach(var p in bounderies_between_components)
+            {
+                Console.WriteLine("bounderies between component " + p.Key.Item1 + " and " + p.Key.Item2 + " = "+p.Value);
+            }
+            Console.WriteLine("====================================================");
+            return bounderies_between_components;
         }
 
     }
