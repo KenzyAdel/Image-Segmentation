@@ -165,7 +165,11 @@ namespace ImageTemplate
             //return componentsList;
         }
 
-        public Dictionary<long, List<long>> Remaining_component= new Dictionary<long, List<long>>();
+        public Dictionary<long, List<long>> Red_component= new Dictionary<long, List<long>>();
+        public Dictionary<long, List<long>> Blue_component = new Dictionary<long, List<long>>();
+        public Dictionary<long, List<long>> Green_component = new Dictionary<long, List<long>>();
+
+
         long RID = 0;
         private Dictionary<long, List<long>> GetCombinedComponents()
         {
@@ -195,30 +199,61 @@ namespace ImageTemplate
                     }
                     else
                     {
-
                         if (redId == greenId && redId != blueId)
-                            RID = blueId*211;
-                        else if (redId == blueId && redId != greenId )// Red and Green
-                            RID = greenId*-211;
-                        else if ((greenId == blueId && greenId != redId))
-                            RID = redId*-1;
-                        
-                        if (!Remaining_component.ContainsKey(RID))
-                            Remaining_component[RID] = new List<long>();
+                        {
+                            if (!Blue_component.ContainsKey(blueId))
+                                Blue_component[blueId] = new List<long>();
 
-                        Remaining_component[RID].Add(pixel);
-                        
-                        
+                            Blue_component[blueId].Add(pixel);
+
+                        }
+                        else if (redId == blueId && redId != greenId)// Red and Green
+                        {
+                            if (!Green_component.ContainsKey(greenId))
+                                Green_component[greenId] = new List<long>();
+
+                            Green_component[greenId].Add(pixel);
+                        }
+                        else if ((greenId == blueId && greenId != redId))
+                        {
+                            if (!Red_component.ContainsKey(redId))
+                                Red_component[redId] = new List<long>();
+
+                            Red_component[redId].Add(pixel);
+                        }
+
+
                     }
                 }
-                int key = -1;
-                foreach(var v in  _componentPixels)
+                long key = -1;
+                foreach(var v in  Red_component)
                 {
-                    if(!Remaining_component.ContainsKey(v.Key))
-                        Remaining_component.Add(v.Key, v.Value);
+                    if(!_componentPixels.ContainsKey(v.Key))
+                        _componentPixels.Add(v.Key, v.Value);
                     else
                     {
-                        Remaining_component.Add(key, v.Value);
+                        _componentPixels.Add(key, v.Value);
+                        key--;
+                    }
+                }
+                foreach (var v in Green_component)
+                {
+                    if (!_componentPixels.ContainsKey(v.Key))
+                        _componentPixels.Add(v.Key, v.Value);
+                    else
+                    {
+                        _componentPixels.Add(key, v.Value);
+                        key--;
+                    }
+                }
+                foreach (var v in Blue_component)
+                {
+                    if (!_componentPixels.ContainsKey(v.Key))
+                        _componentPixels.Add(v.Key, v.Value);
+                    else
+                    {
+                        _componentPixels.Add(key, v.Value);
+                        key--;
                     }
                 }
             }
@@ -236,7 +271,7 @@ namespace ImageTemplate
                 componentIntensities[componentId] = intensities;
             }*/
 
-            return Remaining_component;
+            return _componentPixels;
         }
         public Dictionary<long, List<long>> SegmentImage(Dictionary<long, List<Tuple<long, int>>> red, Dictionary<long, List<Tuple<long, int>>> blue, Dictionary<long, List<Tuple<long, int>>>green)
         {
