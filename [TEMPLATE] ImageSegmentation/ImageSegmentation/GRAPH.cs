@@ -96,24 +96,6 @@ namespace ImageTemplate
 
             }
 
-            // Console output to print the list of tuples directly
-             /*Console.WriteLine("\nRed Channel Weight Graph:");
-             Console.WriteLine("(Format: Pixel [row,col] → List of Tuples (Neighbor Index, Weight))");
-             Console.WriteLine(new string('=', 60));*/
-
-             /*foreach (var entry in redGraph.OrderBy(e => e.Key))
-             {
-                 long index = entry.Key;
-                 int row = (int)(index / columns);
-                 int col = (int)(index % columns);
-                 Console.Write($"[{row},{col}] → ");
-
-                 // Print the list of tuples (neighbor index, weight)
-                 Console.WriteLine("[ " + string.Join(", ", entry.Value.Select(t => $"({t.Item1}, {t.Item2})")) + " ]");
-
-                 Console.WriteLine(new string('-', 60));
-             }*/
-
             return redGraph.OrderBy(e => e.Key).ToDictionary(pair => pair.Key, pair => pair.Value);
         }
 
@@ -198,24 +180,6 @@ namespace ImageTemplate
 
             }
 
-            // Console output to print the list of tuples directly
-            /*Console.WriteLine("\nRed Channel Weight Graph:");
-            Console.WriteLine("(Format: Pixel [row,col] → List of Tuples (Neighbor Index, Weight))");
-            Console.WriteLine(new string('=', 60));
-
-            foreach (var entry in blueGraph.OrderBy(e => e.Key))
-            {
-                long index = entry.Key;
-                int row = (int)(index / columns);
-                int col = (int)(index % columns);
-                Console.Write($"[{row},{col}] → ");
-
-                // Print the list of tuples (neighbor index, weight)
-                Console.WriteLine("[ " + string.Join(", ", entry.Value.Select(t => $"({t.Item1}, {t.Item2})")) + " ]");
-
-                Console.WriteLine(new string('-', 60));
-            }*/
-
             return blueGraph.OrderBy(e => e.Key).ToDictionary(pair => pair.Key, pair => pair.Value);
         }
 
@@ -299,24 +263,6 @@ namespace ImageTemplate
                 }
 
             }
-
-            // Console output to print the list of tuples directly
-            /* Console.WriteLine("\nRed Channel Weight Graph:");
-             Console.WriteLine("(Format: Pixel [row,col] → List of Tuples (Neighbor Index, Weight))");
-             Console.WriteLine(new string('=', 60));
-
-             foreach (var entry in greenGraph.OrderBy(e => e.Key))
-             {
-                 long index = entry.Key;
-                 int row = (int)(index / columns);
-                 int col = (int)(index % columns);
-                 Console.Write($"[{row},{col}] → ");
-
-                 // Print the list of tuples (neighbor index, weight)
-                 Console.WriteLine("[ " + string.Join(", ", entry.Value.Select(t => $"({t.Item1}, {t.Item2})")) + " ]");
-
-                 Console.WriteLine(new string('-', 60));
-             }*/
 
             return greenGraph.OrderBy(e => e.Key).ToDictionary(pair => pair.Key, pair => pair.Value);
         }
