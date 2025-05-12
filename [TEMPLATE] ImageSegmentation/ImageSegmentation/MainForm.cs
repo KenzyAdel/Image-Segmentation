@@ -7,6 +7,7 @@ using System.Text;
 using System.Windows.Forms;
 using System.Runtime.InteropServices;
 using System.Linq; // lazm n4ilo 3lashan el doctor hinf5ona 
+using System.Threading.Tasks;
 
 namespace ImageTemplate
 {
@@ -62,13 +63,24 @@ namespace ImageTemplate
                 Console.WriteLine("\n");  // Move to the next line after each row
                 Console.WriteLine();
             }*/
-            GRAPH graph = new GRAPH(ImageMatrix);
+            // GRAPH graph = new GRAPH(ImageMatrix);
+            Segmentation segmentation = new Segmentation(ImageMatrix);
+            Internal_Difference internal_diff = new Internal_Difference(ImageMatrix);
+            //segmentation.Blue_Segment();
+            //segmentation.Green_Segment();
+            //segmentation.Red_Segment();
+            //segmentation.GetCombinedComponents();
+            segmentation.SegmentImage();
+            internal_diff.CalculateFinalInternalDifferences(segmentation._componentPixels);
+            internal_diff.Difference_between_2_components(segmentation._componentPixels);
+            //  List<(long v1, long v2, int w)> Blue_Weight;
+            // List<(long v1, long v2, int w)> Green_Weight;
 
-            // lazm n4ilo 3lashan el doctor hinf5ona 
-            Dictionary<long, List<Tuple<long, int>>> Red_Weights = graph.Red_Weight();
-            Dictionary<long, List<Tuple<long, int>>> Blue_Weight = graph.Blue_Weight();
-            Dictionary<long, List<Tuple<long, int>>> Green_Weight = graph.Green_Weight();
-
+            //     Parallel.Invoke(
+            //    () => Red_Weights = graph.Red_Weight(),
+            //    () => Blue_Weight = graph.Blue_Weight(),
+            //    () => Green_Weight = graph.Green_Weight()
+            //);
             // lazm n4ilo 3lashan el doctor hinf5ona 
             // Segmentation part
 
@@ -85,23 +97,23 @@ namespace ImageTemplate
             Console.WriteLine("Blue Component Counts:");
             PrintComponentCounts(blueMap);*/
 
-            Segmentation segmentation = new Segmentation(ImageMatrix);
-            Dictionary<long, List<long>> components = segmentation.SegmentImage(Red_Weights,Blue_Weight,Green_Weight);
-            Internal_Difference internal_Difference = new Internal_Difference(segmentation.M);
-            Dictionary<Tuple<long, long>, int> bounderies_between_components = internal_Difference.Difference_between_2_components(components,segmentation.M, Red_Weights, Green_Weight, Blue_Weight);
+            // Segmentation segmentation = new Segmentation(ImageMatrix);
+            // Dictionary<long, List<long>> components = segmentation.SegmentImage(Red_Weights,Blue_Weight,Green_Weight);
+            // Internal_Difference internal_Difference = new Internal_Difference(segmentation.M);
+            // Dictionary<Tuple<long, long>, int> bounderies_between_components = internal_Difference.Difference_between_2_components(components,segmentation.M, Red_Weights, Green_Weight, Blue_Weight);
 
-            Console.WriteLine("Red Component Counts:");
-            PrintComponentCounts(segmentation.redMap);
+             //Console.WriteLine("Red Component Counts:");
+             //PrintComponentCounts(segmentation.);
 
-            Console.WriteLine("Green Component Counts:");
-            PrintComponentCounts(segmentation.greenMap);
+            // Console.WriteLine("Green Component Counts:");
+            // PrintComponentCounts(segmentation.greenMap);
 
-            Console.WriteLine("Blue Component Counts:");
-            PrintComponentCounts(segmentation.blueMap);
+            // Console.WriteLine("Blue Component Counts:");
+            // PrintComponentCounts(segmentation.blueMap);
 
             // Print all components and their pixel counts
             Console.WriteLine("\n=== Components and Pixel Counts ===");
-            foreach (var component in components)
+            foreach (var component in segmentation._componentPixels)
             {
                 long componentId = component.Key;
                 List<long> pixels = new List<long>();
@@ -129,11 +141,13 @@ namespace ImageTemplate
                 //}
 
 
+                // }
             }
-           // MessageBox.Show("Red weights printed to console!");
-            ImageOperations.DisplayImage(ImageMatrix, pictureBox2);
-        }
+            MessageBox.Show("Red weights printed to console!");
+            //  ImageOperations.DisplayImage(ImageMatrix, pictureBox2);
 
+
+        }
         private void PrintComponentCounts(long[] map)
         {
             Dictionary<long, int> countMap = new Dictionary<long, int>();

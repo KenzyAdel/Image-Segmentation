@@ -3,185 +3,822 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Linq;
+using System.Linq.Expressions;
 
 namespace ImageTemplate
 {
-    /*public class Components
-    {
-        public HashSet<long> inner_pixels { get; private set; }
-        public HashSet<long> boundaries { get; private set; }
-
-        public Components()
-        {
-            inner_pixels = new HashSet<long>();
-            boundaries = new HashSet<long>();
-        }
-
-        public void AddInnerPixel(long pixel, int intensity)
-        {
-            inner_pixels.Add(pixel);
-        }
-
-        public void AddBoundary(long pixel, int intensity)
-        {
-            if (!boundaries.Contains(pixel))
-            {
-                boundaries.Add(pixel);
-            }
-        }
-
-        public bool ContainsInnerPixel(long pixel)
-        {
-            return inner_pixels.Contains(pixel);
-        }
-    }*/
-
-    internal class Segmentation
+    public class Segmentation
     {
         private RGBPixel[,] imageMatrix;
         private int rows;
         private int columns;
         public long M;
-        public long[] redMap { get; private set; }
-        public long[] greenMap { get; private set; }
-        public long[] blueMap { get; private set; }
-        private Dictionary<long, List<long>> _componentPixels;
-
+ 
+        public Dictionary<int, List<int>> _componentPixels;
+        public static int [] red_member;
+        public static int [] green_member;
+        public static int [] blue_member;
+        public List<List<(int, int, int)>> red_edges;
+        public List<List<(int, int, int)>> green_edges;
+        public List<List<(int, int, int)>> blue_edges;
+        Internal_Difference internal_Difference;
         public Segmentation(RGBPixel[,] matrix)
         {
             imageMatrix = matrix;
             rows = matrix.GetLength(0);
             columns = matrix.GetLength(1);
             M = rows * columns;
-            redMap = new long[M];
-            greenMap = new long[M];
-            blueMap = new long[M];
-            _componentPixels = new Dictionary<long, List<long>>();
+            _componentPixels = new Dictionary<int, List<int>>();
+            red_member = new int[M];
+            blue_member = new int[M];
+            green_member = new int[M];
+            
+            red_edges = new List<List<(int, int, int)>>();
+            green_edges = new List<List<(int, int, int)>>();
+            blue_edges = new List<List<(int, int, int)>>();
+
+            for (int i = 0; i < M; i++)
+            {
+                Make_Set(i, red_member);
+                Make_Set(i, blue_member);
+                Make_Set(i, green_member);
+            }
         }
-
-        private int GetIntensityForPixel(int pixelNumber, string color)
+       
+        public void Make_Set(int x,int[] member)
         {
-            int row = pixelNumber / columns;
-            int col = pixelNumber % columns;
-
-            int intensity = 0;
-            if (color == "red")
-            {
-                intensity = imageMatrix[row, col].red;
-            }
-            else if (color == "green")
-            {
-                intensity = imageMatrix[row, col].green;
-            }
-            else if (color == "blue")
-            {
-                intensity = imageMatrix[row, col].blue;
-            }
-            return intensity;
+           member[x] = x;
         }
-
-        public void Segment(Dictionary<long, List<Tuple<long, int>>> graph, string color)
+        public int Find_set(int x,int []member)
         {
-            /*List<(int u, int v, int weight)> pixels = new List<(int, int, int)>();
-            HashSet<(int, int)> pixelSet = new HashSet<(int, int)>();
-            foreach (var pixel in graph)
+            if (member[x] != x)
+                member[x] = Find_set(member[x],member);
+            return member[x];
+        }
+      
+       
+        private void union(int x, int y,int weight,int []member)
+        {
+            int parent_y = Find_set(y,member);
+            member[parent_y] = Find_set(x, member);
+        }
+        private int choose_color(char color,int i,int j,int i2,int j2)
+        {
+            if (color == 'r')
+                return Math.Abs(imageMatrix[i, j].red - imageMatrix[i2, j2].red);
+            else if (color == 'b')
+                return Math.Abs(imageMatrix[i, j].blue - imageMatrix[i2, j2].blue);
+            else
+                return Math.Abs(imageMatrix[i, j].green - imageMatrix[i2, j2].green);
+
+
+
+        }
+        //public List<(int, int, int)> edges(List<int> component,char color)
+        //{
+        //    HashSet<int> componentSet = new HashSet<int>(component);
+        //    List<(int v1, int v2, int w)> uniqueEdges = new List<(int v1, int v2, int w)>();
+        //    HashSet<(int, int)> addedEdges = new HashSet<(int, int)>();
+
+        //    foreach (int v1 in component)
+        //    {
+        //        int i = (v1 / columns);
+        //        int j = (v1 % columns);
+
+        //        //Top - Left Neighbor
+        //        if (i - 1 >= 0 && j - 1 >= 0 )
+        //        {
+        //            int Index = (i - 1) * columns + (j - 1);
+        //            if (red_member[v1] == red_member[Index])
+        //            {
+
+        //                int weight = choose_color(color, i, j, i - 1, j - 1);
+        //                int a = Math.Min(v1, Index);
+        //                int b = Math.Max(v1, Index);
+
+        //                if (addedEdges.Add((a, b)))
+        //                {
+        //                    uniqueEdges.Add((a, b, weight));
+        //                }
+        //            }
+        //        }
+
+        //        // Top Neighbor
+        //        if (i - 1 >= 0)
+        //        {
+        //            int Index = (i - 1) * columns + j;
+        //            if (componentSet.Contains(Index))
+        //            {
+        //                int weight = choose_color(color, i, j, i - 1, j);
+        //                int a = Math.Min(v1, Index);
+        //                int b = Math.Max(v1, Index);
+
+        //                if (addedEdges.Add((a, b)))
+        //                {
+        //                    uniqueEdges.Add((a, b, weight));
+        //                }
+        //            }
+        //        }
+
+        //        // Top-Right Neighbor
+        //        if (i - 1 >= 0 && j + 1 < columns)
+        //        {
+        //            int Index = (i - 1) * columns + (j + 1);
+        //            if (componentSet.Contains(Index))
+        //            {
+        //                int weight = choose_color(color, i, j, i - 1, j + 1);
+        //                int a = Math.Min(v1, Index);
+        //                int b = Math.Max(v1, Index);
+
+        //                if (addedEdges.Add((a, b)))
+        //                {
+        //                    uniqueEdges.Add((a, b, weight));
+        //                }
+        //            }
+        //        }
+
+        //        // Left Neighbor
+        //        if (j - 1 >= 0)
+        //        {
+        //            int Index = i * columns + (j - 1);
+        //            if (componentSet.Contains(Index))
+        //            {
+        //                int weight = choose_color(color, i, j, i, j - 1);
+        //                int a = Math.Min(v1, Index);
+        //                int b = Math.Max(v1, Index);
+
+        //                if (addedEdges.Add((a, b)))
+        //                {
+        //                    uniqueEdges.Add((a, b, weight));
+        //                }
+        //            }
+        //        }
+
+        //        // Right Neighbor
+        //        if (j + 1 < columns)
+        //        {
+        //            int Index = i * columns + (j + 1);
+        //            if (componentSet.Contains(Index))
+        //            {
+        //                int weight = choose_color(color, i, j, i, j + 1);
+        //                int a = Math.Min(v1, Index);
+        //                int b = Math.Max(v1, Index);
+
+        //                if (addedEdges.Add((a, b)))
+        //                {
+        //                    uniqueEdges.Add((a, b, weight));
+        //                }
+        //            }
+        //        }
+
+        //        // Bottom-Left Neighbor
+        //        if (i + 1 < rows && j - 1 >= 0)
+        //        {
+        //            int Index = (i + 1) * columns + (j - 1);
+        //            if (componentSet.Contains(Index))
+        //            {
+        //                int weight = choose_color(color, i, j, i + 1, j - 1);
+        //                int a = Math.Min(v1, Index);
+        //                int b = Math.Max(v1, Index);
+
+        //                if (addedEdges.Add((a, b)))
+        //                {
+        //                    uniqueEdges.Add((a, b, weight));
+        //                }
+        //            }
+        //        }
+
+        //        // Bottom Neighbor
+        //        if (i + 1 < rows)
+        //        {
+        //            int Index = (i + 1) * columns + j;
+        //            if (componentSet.Contains(Index))
+        //            {
+        //                int weight = choose_color(color, i, j, i + 1, j);
+        //                int a = Math.Min(v1, Index);
+        //                int b = Math.Max(v1, Index);
+
+        //                if (addedEdges.Add((a, b)))
+        //                {
+        //                    uniqueEdges.Add((a, b, weight));
+        //                }
+        //            }
+        //        }
+
+        //        // Bottom-Right Neighbor
+        //        if (i + 1 < rows && j + 1 < columns)
+        //        {
+        //            int Index = (i + 1) * columns + (j + 1);
+        //            if (componentSet.Contains(Index))
+        //            {
+        //                int weight = choose_color(color, i, j, i + 1, j + 1);
+        //                int a = Math.Min(v1, Index);
+        //                int b = Math.Max(v1, Index);
+
+        //                if (addedEdges.Add((a, b)))
+        //                {
+        //                    uniqueEdges.Add((a, b, weight));
+        //                }
+        //            }
+        //        }
+
+        //    }
+
+        
+        //    uniqueEdges.Sort((a, b) => a.w.CompareTo(b.w));
+        //    //internal_Difference.CalculateInternalDifference(uniqueEdges);
+        //    return ;
+        //}
+
+        ////public void Red_Segment2()
+        ////{
+
+        ////    for (int i = 0; i < rows; i++)
+        ////    {
+        ////        for (int j = 0; j < columns; j++)
+        ////        {
+        ////            int currentIndex = i * columns + j;
+
+        ////            //Top - Left Neighbor
+        ////            if (i - 1 >= 0 && j - 1 >= 0)
+        ////            {
+        ////                int Index = (i - 1) * columns + (j - 1);
+        ////                int weight = Math.Abs(imageMatrix[i, j].red - imageMatrix[i - 1, j - 1].red);
+
+        ////                red_edge2.Add((currentIndex,Index,weight));
+        ////                // union()
+
+
+        ////            }
+
+        ////            // Top Neighbor
+        ////            if (i - 1 >= 0)
+        ////            {
+        ////                int Index = (i - 1) * columns + j;
+        ////                int weight = Math.Abs(imageMatrix[i, j].red - imageMatrix[i - 1, j].red);
+
+        ////                red_edge2.Add((currentIndex, Index, weight));
+
+
+        ////                // union()
+
+        ////            }
+
+        ////            // Top-Right Neighbor
+        ////            if (i - 1 >= 0 && j + 1 < columns)
+        ////            {
+        ////                int Index = (i - 1) * columns + (j + 1);
+        ////                int weight = Math.Abs(imageMatrix[i, j].red - imageMatrix[i - 1, j + 1].red);
+
+        ////                red_edge2.Add((currentIndex, Index, weight));
+
+        ////                // union()
+
+        ////            }
+
+        ////            // Left Neighbor
+        ////            if (j - 1 >= 0)
+        ////            {
+        ////                int Index = i * columns + (j - 1);
+        ////                int weight = Math.Abs(imageMatrix[i, j].red - imageMatrix[i, j - 1].red);
+
+        ////                red_edge2.Add((currentIndex, Index, weight));
+
+
+        ////                // union()
+
+        ////            }
+
+        ////            // Right Neighbor
+        ////            if (j + 1 < columns)
+        ////            {
+        ////                int Index = i * columns + (j + 1);
+        ////                int weight = Math.Abs(imageMatrix[i, j].red - imageMatrix[i, j + 1].red);
+
+        ////                red_edge2.Add((currentIndex, Index, weight));
+
+        ////                // union()
+
+        ////            }
+
+        ////            // Bottom-Left Neighbor
+        ////            if (i + 1 < rows && j - 1 >= 0)
+        ////            {
+        ////                int Index = (i + 1) * columns + (j - 1);
+        ////                int weight = Math.Abs(imageMatrix[i, j].red - imageMatrix[i + 1, j - 1].red);
+        ////                red_edge2.Add((currentIndex, Index, weight));
+
+        ////            }
+
+        ////            // Bottom Neighbor
+        ////            if (i + 1 < rows)
+        ////            {
+        ////                int Index = (i + 1) * columns + j;
+        ////                int weight = Math.Abs(imageMatrix[i, j].red - imageMatrix[i + 1, j].red);
+
+        ////                red_edge2.Add((currentIndex, Index, weight));
+
+        ////                // union()
+
+        ////            }
+
+        ////            // Bottom-Right Neighbor
+        ////            if (i + 1 < rows && j + 1 < columns)
+        ////            {
+        ////                int Index = (i + 1) * columns + (j + 1);
+        ////                int weight = Math.Abs(imageMatrix[i, j].red - imageMatrix[i + 1, j + 1].red);
+
+        ////                red_edge2.Add((currentIndex, Index, weight));
+
+        ////                // union()
+
+        ////            }
+        ////        }
+
+        ////    }
+        ////}
+        public void Red_Segment()
+        {
+
+            for (int i = 0; i < rows; i++)
             {
-                int u = (int)pixel.Key;
-                foreach (var neighbor in pixel.Value)
+                for (int j = 0; j < columns; j++)
                 {
-                    int v = (int)neighbor.Item1;
-                    int weight = neighbor.Item2;
-                    int min = Math.Min(u, v);
-                    int max = Math.Max(u, v);
-                    if (u < v && !pixelSet.Contains((min, max)))
+                    int currentIndex = i * columns + j;
+
+                    //Top - Left Neighbor
+                    if (i - 1 >= 0 && j - 1 >= 0)
                     {
-                        pixelSet.Add((min, max));
-                        pixels.Add((u, v, weight));
-                    }
-                }
-            }
-            pixels.Sort((a, b) => a.weight.CompareTo(b.weight));*/
-
-            //List<Components> componentsList = new List<Components>();
-            bool[] visited = new bool[M];
-            int Id = 0;
-            const int weightThreshold = 1;
-
-            for (int pixel = 0; pixel < M; pixel++)
-            {
-                if (visited[pixel]) continue;
-
-                //Components component = new Components();
-                Queue<long> queue = new Queue<long>();
-                queue.Enqueue(pixel);
-                visited[pixel] = true;
-
-                
-                if (color == "red") redMap[pixel] = Id;
-                else if (color == "green") greenMap[pixel] = Id;
-                else if (color == "blue") blueMap[pixel] = Id;
-
-                while (queue.Count > 0)
-                {
-                    long currentPixel = queue.Dequeue();
-
-                    if (!graph.ContainsKey(currentPixel)) continue;
-
-                    foreach (var neighbor in graph[currentPixel])
-                    {
-                        long neighborPixel = neighbor.Item1;
-                        int weight = neighbor.Item2;
-
-                        /*if (visited[neighborPixel])
-                        {
-                            if (!component.ContainsInnerPixel(neighborPixel))
+                        int Index = (i - 1) * columns + (j - 1);
+                        int weight = Math.Abs(imageMatrix[i, j].red - imageMatrix[i - 1, j - 1].red);
+                        if (weight < 1)
+                            if (Find_set(Index, red_member) != Find_set(currentIndex, red_member))
                             {
-                                int neighborIntensity = GetIntensityForPixel((int)neighborPixel, color);
-                                component.AddBoundary(neighborPixel, neighborIntensity);
+                                int low = Math.Min(Index, currentIndex);
+                                int high = Math.Max(Index, currentIndex);
+
+                                union(low, high, weight, red_member);
                             }
-                        }*/
-                        if (!visited[neighborPixel] && weight < weightThreshold)
+                            // union()
+                        
+
+                    }
+
+                    // Top Neighbor
+                    if (i - 1 >= 0)
+                    {
+                        int Index = (i - 1) * columns + j;
+                        int weight = Math.Abs(imageMatrix[i, j].red - imageMatrix[i - 1, j].red);
+                        if (weight < 1)
+                            if (Find_set(Index, red_member) != Find_set(currentIndex, red_member))
+                            {
+                                int low = Math.Min(Index, currentIndex);
+                                int high = Math.Max(Index, currentIndex);
+                                union(low, high, weight, red_member);
+                            }
+
+                            // union()
+                        
+                    }
+
+                    // Top-Right Neighbor
+                    if (i - 1 >= 0 && j + 1 < columns)
+                    {
+                        int Index = (i - 1) * columns + (j + 1);
+                        int weight = Math.Abs(imageMatrix[i, j].red - imageMatrix[i - 1, j + 1].red);
+                        if (weight < 1)
+                            if (Find_set(Index, red_member) != Find_set(currentIndex, red_member))
+                            {
+                                int low = Math.Min(Index, currentIndex);
+                                int high = Math.Max(Index, currentIndex);
+
+                                union(low, high, weight, red_member);
+                            }
+                            // union()
+                        
+                    }
+
+                    // Left Neighbor
+                    if (j - 1 >= 0)
+                    {
+                        int Index = i * columns + (j - 1);
+                        int weight = Math.Abs(imageMatrix[i, j].red - imageMatrix[i, j - 1].red);
+                        if (weight < 1)
+                            if (Find_set(Index, red_member) != Find_set(currentIndex, red_member))
+                            {
+                                int low = Math.Min(Index, currentIndex);
+                                int high = Math.Max(Index, currentIndex);
+
+                                union(low, high, weight, red_member);
+                            }
+
+                            // union()
+                        
+                    }
+
+                    // Right Neighbor
+                    if (j + 1 < columns)
+                    {
+                        int Index = i * columns + (j + 1);
+                        int weight = Math.Abs(imageMatrix[i, j].red - imageMatrix[i, j + 1].red);
+                        if (weight < 1)
+                            if (Find_set(Index, red_member) != Find_set(currentIndex, red_member))
+                            {
+                                int low = Math.Min(Index, currentIndex);
+                                int high = Math.Max(Index, currentIndex);
+
+                                union(low, high, weight, red_member);
+                            }
+                            // union()
+                        
+                    }
+
+                    // Bottom-Left Neighbor
+                    if (i + 1 < rows && j - 1 >= 0)
+                    {
+                        int Index = (i + 1) * columns + (j - 1);
+                        int weight = Math.Abs(imageMatrix[i, j].red - imageMatrix[i + 1, j - 1].red);
+                        if (weight < 1)
                         {
-                            queue.Enqueue(neighborPixel);
-                            visited[neighborPixel] = true;
-                            //int neighborIntensity = GetIntensityForPixel((int)neighborPixel, color);
-                            //component.AddInnerPixel(neighborPixel, neighborIntensity);
-                            if (color == "red") redMap[neighborPixel] = Id;
-                            else if (color == "green") greenMap[neighborPixel] = Id;
-                            else if (color == "blue") blueMap[neighborPixel] = Id;
+                            if (Find_set(Index, red_member) != Find_set(currentIndex, red_member))
+                            {
+                                int low = Math.Min(Index, currentIndex);
+                                int high = Math.Max(Index, currentIndex);
+
+                                union(low, high, weight, red_member);
+                            }
+                            // union()
                         }
-                        /*else
-                        {
-                            int neighborIntensity = GetIntensityForPixel((int)neighborPixel, color);
-                            component.AddBoundary(neighborPixel, neighborIntensity);
-                        }*/
+                    }
+
+                    // Bottom Neighbor
+                    if (i + 1 < rows)
+                    {
+                        int Index = (i + 1) * columns + j;
+                        int weight = Math.Abs(imageMatrix[i, j].red - imageMatrix[i + 1, j].red);
+                        if(weight < 1)
+                            if (Find_set(Index, red_member) != Find_set(currentIndex, red_member))
+                            {
+                                int low = Math.Min(Index, currentIndex);
+                                int high = Math.Max(Index, currentIndex);
+
+                                union(low, high, weight, red_member);
+                            }
+                            // union()
+                        
+                    }
+
+                    // Bottom-Right Neighbor
+                    if (i + 1 < rows && j + 1 < columns)
+                    {
+                        int Index = (i + 1) * columns + (j + 1);
+                        int weight = Math.Abs(imageMatrix[i, j].red - imageMatrix[i + 1, j + 1].red);
+                        if (weight < 1)
+                            if (Find_set(Index, red_member) != Find_set(currentIndex, red_member))
+                            {
+                                int low = Math.Min(Index, currentIndex);
+                                int high = Math.Max(Index, currentIndex);
+
+                                union(low, high, weight, red_member);
+                            }
+                            // union()
+                        
                     }
                 }
 
-                //componentsList.Add(component);
-                Id++;
             }
 
-            //return componentsList;
+            //Dictionary<int,Tuple<int,List<int>>> componentsList = new Dictionary<int, Tuple<int, List<int>>>();
+            //for (int i = 0; i < rows * columns; i++)
+            //{
+            //    if (!componentsList.ContainsKey(member[i]))
+            //        componentsList.Add(member[i],new Tuple<int, List<int>>(weights[Find_set(i)],new List<int>()));
+            //    else
+            //        componentsList[member[i]].Item2.Add(i);
+            //}
+
+            //  return componentsList;
         }
 
-        public Dictionary<long, List<long>> Red_component= new Dictionary<long, List<long>>();
-        public Dictionary<long, List<long>> Blue_component = new Dictionary<long, List<long>>();
-        public Dictionary<long, List<long>> Green_component = new Dictionary<long, List<long>>();
-
-
-        long RID = 0;
-        private Dictionary<long, List<long>> GetCombinedComponents()
+        public void Blue_Segment()
         {
-            if (_componentPixels.Count == 0)
+            for (int i = 0; i < rows; i++)
             {
-                for (long pixel = 0; pixel < M; pixel++)
+                for (int j = 0; j < columns; j++)
                 {
-                    long redId = redMap[pixel];
-                    long greenId = greenMap[pixel];
-                    long blueId = blueMap[pixel];
+                    int currentIndex = i * columns + j;
 
-                    long componentId = redId;
+                    //Top - Left Neighbor
+                    if (i - 1 >= 0 && j - 1 >= 0)
+                    {
+                        int Index = (i - 1) * columns + (j - 1);
+                        int weight = Math.Abs(imageMatrix[i, j].blue - imageMatrix[i - 1, j - 1].blue);
+                        if (weight < 1)
+
+                            if (Find_set(Index, blue_member) != Find_set(currentIndex, blue_member))
+                            {
+                                int low = Math.Min(Index, currentIndex);
+                                int high = Math.Max(Index, currentIndex);
+
+                                union(low, high, weight, blue_member);
+                            }
+                            // union()
+                        
+
+                    }
+
+                    // Top Neighbor
+                    if (i - 1 >= 0)
+                    {
+                        int Index = (i - 1) * columns + j;
+                        int weight = Math.Abs(imageMatrix[i, j].blue - imageMatrix[i - 1, j].blue);
+                        if (weight < 1)
+                            if (Find_set(Index, blue_member) != Find_set(currentIndex, blue_member))
+                            {
+                                int low = Math.Min(Index, currentIndex);
+                                int high = Math.Max(Index, currentIndex);
+
+                                union(low, high, weight, blue_member);
+                            }
+
+                            // union()
+                        
+                    }
+
+                    // Top-Right Neighbor
+                    if (i - 1 >= 0 && j + 1 < columns)
+                    {
+                        int Index = (i - 1) * columns + (j + 1);
+                        int weight = Math.Abs(imageMatrix[i, j].blue - imageMatrix[i - 1, j + 1].blue);
+                        if (weight < 1)
+
+                            if (Find_set(Index, blue_member) != Find_set(currentIndex, blue_member))
+                            {
+                                int low = Math.Min(Index, currentIndex);
+                                int high = Math.Max(Index, currentIndex);
+
+                                union(low, high, weight, blue_member);
+                            }
+                            // union()
+                        
+                    }
+
+                    // Left Neighbor
+                    if (j - 1 >= 0)
+                    {
+                        int Index = i * columns + (j - 1);
+                        int weight = Math.Abs(imageMatrix[i, j].blue - imageMatrix[i, j - 1].blue);
+                        if (weight < 1)
+
+                            if (Find_set(Index, blue_member) != Find_set(currentIndex, blue_member))
+                            {
+                                int low = Math.Min(Index, currentIndex);
+                                int high = Math.Max(Index, currentIndex);
+
+                                union(low, high, weight, blue_member);
+
+                            }
+
+                            // union()
+                        
+                    }
+
+                    // Right Neighbor
+                    if (j + 1 < columns)
+                    {
+                        int Index = i * columns + (j + 1);
+                        int weight = Math.Abs(imageMatrix[i, j].blue - imageMatrix[i, j + 1].blue);
+                        if (weight < 1)
+
+                            if (Find_set(Index, blue_member) != Find_set(currentIndex, blue_member))
+                            {
+                                int low = Math.Min(Index, currentIndex);
+                                int high = Math.Max(Index, currentIndex);
+
+                                union(low, high, weight, blue_member);
+                            }
+                            // union()
+                        
+                    }
+
+                    // Bottom-Left Neighbor
+                    if (i + 1 < rows && j - 1 >= 0)
+                    {
+                        int Index = (i + 1) * columns + (j - 1);
+                        int weight = Math.Abs(imageMatrix[i, j].blue - imageMatrix[i + 1, j - 1].blue);
+                        if (weight < 1)
+
+                            if (Find_set(Index, blue_member) != Find_set(currentIndex, blue_member))
+                            {
+                                int low = Math.Min(Index, currentIndex);
+                                int high = Math.Max(Index, currentIndex);
+
+                                union(low, high, weight, blue_member);
+                            }
+                            // union()
+                        
+                    }
+
+                    // Bottom Neighbor
+                    if (i + 1 < rows)
+                    {
+                        int Index = (i + 1) * columns + j;
+                        int weight = Math.Abs(imageMatrix[i, j].blue - imageMatrix[i + 1, j].blue);
+                        if (weight < 1)
+                            if (Find_set(Index, blue_member) != Find_set(currentIndex, blue_member))
+                            {
+                                int low = Math.Min(Index, currentIndex);
+                                int high = Math.Max(Index, currentIndex);
+
+                                union(low, high, weight, blue_member);
+                            }
+                            // union()
+                        
+                    }
+
+                    // Bottom-Right Neighbor
+                    if (i + 1 < rows && j + 1 < columns)
+                    {
+                        int Index = (i + 1) * columns + (j + 1);
+                        int weight = Math.Abs(imageMatrix[i, j].blue - imageMatrix[i + 1, j + 1].blue);
+                        if (weight < 1)
+
+                            if (Find_set(Index, blue_member) != Find_set(currentIndex, blue_member))
+                            {
+                                int low = Math.Min(Index, currentIndex);
+                                int high = Math.Max(Index, currentIndex);
+
+                                union(low, high, weight, blue_member);
+                            }
+                            // union()
+                        
+                    }
+                }
+            }
+        }
+
+        public void Green_Segment()
+        {
+            for (int i = 0; i < rows; i++)
+            {
+                for (int j = 0; j < columns; j++)
+                {
+                    int currentIndex = i * columns + j;
+
+                    //Top - Left Neighbor
+                    if (i - 1 >= 0 && j - 1 >= 0)
+                    {
+                        int Index = (i - 1) * columns + (j - 1);
+                        int weight = Math.Abs(imageMatrix[i, j].green - imageMatrix[i - 1, j - 1].green);
+                        if (weight < 1)
+                        {
+                            if (Find_set(Index, green_member) != Find_set(currentIndex, green_member))
+                            {
+                                int low = Math.Min(Index, currentIndex);
+                                int high = Math.Max(Index, currentIndex);
+
+                                union(low, high, weight, green_member);
+                            }
+                        }
+                    }
+
+                    // Top Neighbor
+                    if (i - 1 >= 0)
+                    {
+                        int Index = (i - 1) * columns + j;
+                        int weight = Math.Abs(imageMatrix[i, j].green - imageMatrix[i - 1, j].green);
+                        if (weight < 1)
+                        {
+                            if (Find_set(Index, green_member) != Find_set(currentIndex, green_member))
+                            {
+                                int low = Math.Min(Index, currentIndex);
+                                int high = Math.Max(Index, currentIndex);
+
+                                union(low, high, weight, green_member);
+                            }
+                        }
+                        
+                    }
+
+                    // Top-Right Neighbor
+                    if (i - 1 >= 0 && j + 1 < columns)
+                    {
+                        int Index = (i - 1) * columns + (j + 1);
+                        int weight = Math.Abs(imageMatrix[i, j].green - imageMatrix[i - 1, j + 1].green);
+                        if (weight < 1)
+                        {
+                            if (Find_set(Index, green_member) != Find_set(currentIndex, green_member))
+                            {
+                                int low = Math.Min(Index, currentIndex);
+                                int high = Math.Max(Index, currentIndex);
+
+                                union(low, high, weight, green_member);
+                            }
+                        }
+                        
+                    }
+
+                    // Left Neighbor
+                    if (j - 1 >= 0)
+                    {
+                        int Index = i * columns + (j - 1);
+                        int weight = Math.Abs(imageMatrix[i, j].green - imageMatrix[i, j - 1].green);
+                        if (weight < 1)
+                        {
+                            if (Find_set(Index, green_member) != Find_set(currentIndex, green_member))
+                            {
+                                int low = Math.Min(Index, currentIndex);
+                                int high = Math.Max(Index, currentIndex);
+
+                                union(low, high, weight, green_member);
+                            }
+                        }
+                    }
+
+                    // Right Neighbor
+                    if (j + 1 < columns)
+                    {
+                        int Index = i * columns + (j + 1);
+                        int weight = Math.Abs(imageMatrix[i, j].green - imageMatrix[i, j + 1].green);
+                        if (weight < 1)
+                        {
+                            if (Find_set(Index, green_member) != Find_set(currentIndex, green_member))
+                            {
+                                int low = Math.Min(Index, currentIndex);
+                                int high = Math.Max(Index, currentIndex);
+
+                                union(low, high, weight, green_member);
+                            }
+                        }
+                    }
+
+                    // Bottom-Left Neighbor
+                    if (i + 1 < rows && j - 1 >= 0)
+                    {
+                        int Index = (i + 1) * columns + (j - 1);
+                        int weight = Math.Abs(imageMatrix[i, j].green - imageMatrix[i + 1, j - 1].green);
+                        if (weight < 1)
+                        {
+                            if (Find_set(Index, green_member) != Find_set(currentIndex, green_member))
+                            {
+                                int low = Math.Min(Index, currentIndex);
+                                int high = Math.Max(Index, currentIndex);
+
+                                union(low, high, weight, green_member);
+                            }
+                            // union()
+                        }
+                    }
+
+                    // Bottom Neighbor
+                    if (i + 1 < rows)
+                    {
+                        int Index = (i + 1) * columns + j;
+                        int weight = Math.Abs(imageMatrix[i, j].green - imageMatrix[i + 1, j].green);
+                        if (weight < 1)
+                        {
+                            if (Find_set(Index, green_member) != Find_set(currentIndex, green_member))
+                            {
+                                int low = Math.Min(Index, currentIndex);
+                                int high = Math.Max(Index, currentIndex);
+
+                                union(low, high, weight, green_member);
+                            }
+                        }
+                    }
+
+                    // Bottom-Right Neighbor
+                    if (i + 1 < rows && j + 1 < columns)
+                    {
+                        int Index = (i + 1) * columns + (j + 1);
+                        int weight = Math.Abs(imageMatrix[i, j].green - imageMatrix[i + 1, j + 1].green);
+                        if (weight < 1)
+                        {
+                            if (Find_set(Index, green_member) != Find_set(currentIndex, green_member))
+                            {
+                                int low = Math.Min(Index, currentIndex);
+                                int high = Math.Max(Index, currentIndex);
+                                union(low, high, weight, green_member);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        public Dictionary<int, List<int>> GetCombinedComponents()
+        {
+             Dictionary<int, List<int>> Red_component = new Dictionary<int, List<int>>();
+             Dictionary<int, List<int>> Blue_component = new Dictionary<int, List<int>>();
+             Dictionary<int, List<int>> Green_component = new Dictionary<int, List<int>>();
+         
+                for (int pixel = 0; pixel < M; pixel++)
+                {
+                    int redId = red_member[pixel];
+                    int greenId = green_member[pixel];
+                    int blueId = blue_member[pixel];
+
+                    int componentId = redId;
                     bool isValidComponent = false;
                     if ((redId == greenId && redId == blueId)) // All match
                     {
@@ -192,17 +829,17 @@ namespace ImageTemplate
                     if (isValidComponent)
                     {
                         if (!_componentPixels.ContainsKey(componentId))
-                            _componentPixels[componentId] = new List<long>();
+                            _componentPixels[componentId] = new List<int>();
+
                         if (!_componentPixels[componentId].Contains(pixel))
                             _componentPixels[componentId].Add(pixel);
-
                     }
                     else
                     {
                         if (redId == greenId && redId != blueId)
                         {
                             if (!Blue_component.ContainsKey(blueId))
-                                Blue_component[blueId] = new List<long>();
+                                Blue_component[blueId] = new List<int>();
 
                             Blue_component[blueId].Add(pixel);
 
@@ -210,83 +847,87 @@ namespace ImageTemplate
                         else if (redId == blueId && redId != greenId)// Red and Green
                         {
                             if (!Green_component.ContainsKey(greenId))
-                                Green_component[greenId] = new List<long>();
+                                Green_component[greenId] = new List<int>();
 
                             Green_component[greenId].Add(pixel);
                         }
                         else if ((greenId == blueId && greenId != redId))
                         {
                             if (!Red_component.ContainsKey(redId))
-                                Red_component[redId] = new List<long>();
+                                Red_component[redId] = new List<int>();
 
                             Red_component[redId].Add(pixel);
                         }
+                    }
+                }
+            //Console.WriteLine("RED Components: ");
+            //foreach(var v in Red_component)
+            //Console.WriteLine(v.Value.Count);
+            //Console.WriteLine("Green Components: ");
+            //foreach (var v in Green_component)
+            //    Console.WriteLine(v.Value.Count);
 
-
-                    }
-                }
-                long key = -1;
-                foreach(var v in  Red_component)
-                {
-                    if(!_componentPixels.ContainsKey(v.Key))
-                        _componentPixels.Add(v.Key, v.Value);
-                    else
-                    {
-                        _componentPixels.Add(key, v.Value);
-                        key--;
-                    }
-                }
-                foreach (var v in Green_component)
-                {
-                    if (!_componentPixels.ContainsKey(v.Key))
-                        _componentPixels.Add(v.Key, v.Value);
-                    else
-                    {
-                        _componentPixels.Add(key, v.Value);
-                        key--;
-                    }
-                }
-                foreach (var v in Blue_component)
-                {
-                    if (!_componentPixels.ContainsKey(v.Key))
-                        _componentPixels.Add(v.Key, v.Value);
-                    else
-                    {
-                        _componentPixels.Add(key, v.Value);
-                        key--;
-                    }
-                }
-            }
-
-           /* Dictionary<long, List<int>> componentIntensities = new Dictionary<long, List<int>>();
-            foreach (var component in _componentPixels)
+            int red_key = 1000000;
+            int blue_key = 2000000;
+            int green_key = 3000000;
+            foreach(var v in  Red_component)
             {
-                long componentId = component.Key;
-                List<int> intensities = new List<int>();
-                int i = 0;
-                foreach (long pixel in component.Value)
-                {
-                    intensities.Add(GetIntensityForPixel((int)pixel, "red"));
-                }
-                componentIntensities[componentId] = intensities;
-            }*/
-
+                   
+                _componentPixels.Add(red_key + red_member[v.Value[0]], v.Value);
+                red_key++;
+            }
+            foreach (var v in Green_component)
+            {
+                _componentPixels.Add (green_key+ green_member[v.Value[0]], v.Value);
+                green_key++;
+            }
+            foreach (var v in Blue_component)
+            {
+                _componentPixels.Add(blue_key + blue_member[v.Value[0]], v.Value);
+                blue_key++;
+            }
+            //Blue_component=null; 
+            //Red_component=null;
+            //Green_component=null;
             return _componentPixels;
         }
-        public Dictionary<long, List<long>> SegmentImage(Dictionary<long, List<Tuple<long, int>>> red, Dictionary<long, List<Tuple<long, int>>> blue, Dictionary<long, List<Tuple<long, int>>>green)
+        public void SegmentImage()
         {
-            
-            var redGraph = red;
-            var greenGraph = green;
-            var blueGraph = blue;
+
+            this.Blue_Segment();
+            this.Green_Segment();
+            this.Red_Segment();
+            //  List<(int, int, int)> red_edges = segmentation.edges(,'r');
+            Dictionary<int, List<int>> storered = new Dictionary<int, List<int>>();
+            for(int a=0;a<red_member.Length;a++)
+            {
+                if (!storered.ContainsKey(red_member[a]))
+                    storered[red_member[a]] = new List<int>();
+                storered[red_member[a]].Add(a);
+
+            }
+            Dictionary<int, List<int>> storegreen = new Dictionary<int, List<int>>();
+            for (int a = 0; a < green_member.Length; a++)
+            {
+                if (!storegreen.ContainsKey(green_member[a]))
+                    storegreen[green_member[a]] = new List<int>();
+                storegreen[green_member[a]].Add(a);
+            }
+            Console.WriteLine("RED Components: ");
+            foreach (var v in storered)
+                Console.WriteLine(v.Value.Count);
+            Console.WriteLine("Green Components: ");
+            foreach (var v in storegreen)
+                Console.WriteLine(v.Value.Count);
 
             _componentPixels.Clear();
-        
-            Segment(redGraph, "red");
-            Segment(greenGraph, "green");
-            Segment(blueGraph, "blue");
-
-            return GetCombinedComponents();
+             GetCombinedComponents();
+            //foreach (var component in components)
+            //{
+            //    red_edges.Add(edges(component.Value, 'r'));
+            //    blue_edges.Add(edges(component.Value, 'b'));
+            //    green_edges.Add(edges(component.Value, 'g'));
+            //}
         }
     }
 }

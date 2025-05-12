@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,14 +12,19 @@ namespace ImageTemplate
 {
     public class Internal_Difference
     {
-        int[] member;
-        
-        public Internal_Difference(long size)
+        Dictionary<int,int> member;
+        private RGBPixel[,] imageMatrix;
+        private int rows;
+        private int columns;
+        public Internal_Difference(RGBPixel[,] matrix)
         {
-            member = new int[size];
-            for (int i = 0; i < size; i++)
+            imageMatrix = matrix;
+            rows = matrix.GetLength(0);
+            columns = matrix.GetLength(1);
+            member = new Dictionary<int, int>();
+            for (int i = 0; i < rows*columns; i++)
                 Make_Set(i);
-            // member[i] = i;
+            //member[i] = i;
         }
         public void Make_Set(int x)
         {
@@ -39,23 +46,71 @@ namespace ImageTemplate
             }
         }
 
-        public int CalculateInternalDifference(List<long> component, Dictionary<long, List<Tuple<long, int>>> graph)
+        private int choose_color(char color, int i, int j, int i2, int j2)
         {
-            HashSet<long> componentSet = new HashSet<long>(component);
-            var uniqueEdges = new List<(int v1, int v2, int w)>();
-            var addedEdges = new HashSet<(int, int)>();
-            int k = 1;
-            foreach (var node in component)
-            {
-                foreach (var neighbor in graph[node])
-                {
-                    int vertex2 = (int)neighbor.Item1;
-                    int weight = neighbor.Item2;
+            if (color == 'r')
+                return Math.Abs(imageMatrix[i, j].red - imageMatrix[i2, j2].red);
+            else if (color == 'b')
+                return Math.Abs(imageMatrix[i, j].blue - imageMatrix[i2, j2].blue);
+            else
+                return Math.Abs(imageMatrix[i, j].green - imageMatrix[i2, j2].green);
 
-                    if (componentSet.Contains(vertex2))
+
+
+        }
+
+        private int GetCompId(int Index)
+        {
+            int NeighborComponent;
+
+            int red = Segmentation.red_member[Index];
+            int blue = Segmentation.blue_member[Index];
+            int green = Segmentation.green_member[Index];
+
+            if (red == green && blue != red)
+            {
+                NeighborComponent = 2000000 + blue;
+            }
+            else if (green == blue && green != red)
+            {
+                NeighborComponent = 1000000 + red;
+            }
+            else if (red == blue && red != green)
+            {
+                NeighborComponent = 3000000 + green;
+            }
+            else
+            {
+                NeighborComponent = red;
+            }
+            return NeighborComponent;
+        }
+
+        public int CalculateInternalDifference_Red(List<int> component,char color)
+        {
+           
+            int maxEdgeWeight = 0;
+            int edgesAdded = 0;
+            int vertices = component.Count;
+            HashSet<int> componentSet = new HashSet<int>(component);
+            List<(int v1, int v2, int w)> uniqueEdges = new List<(int v1, int v2, int w)>();
+            HashSet<(int, int)> addedEdges = new HashSet<(int, int)>();
+
+            foreach (int v1 in component)
+            {
+                int i = (v1 / columns);
+                int j = (v1 % columns);
+
+                //Top - Left Neighbor
+                if (i - 1 >= 0 && j - 1 >= 0)
+                {
+                    int Index = (i - 1) * columns + (j - 1);
+                    if (componentSet.Contains(Index))
                     {
-                        int a = Math.Min((int)node, vertex2);
-                        int b = Math.Max((int)node, vertex2);
+
+                        int weight = choose_color(color, i, j, i - 1, j - 1);
+                        int a = Math.Min(v1, Index);
+                        int b = Math.Max(v1, Index);
 
                         if (addedEdges.Add((a, b)))
                         {
@@ -63,123 +118,746 @@ namespace ImageTemplate
                         }
                     }
                 }
+
+                // Top Neighbor
+                if (i - 1 >= 0)
+                {
+                    int Index = (i - 1) * columns + j;
+                    if (componentSet.Contains(Index))
+                    {
+                        int weight = choose_color(color, i, j, i - 1, j);
+                        int a = Math.Min(v1, Index);
+                        int b = Math.Max(v1, Index);
+
+                        if (addedEdges.Add((a, b)))
+                        {
+                            uniqueEdges.Add((a, b, weight));
+                        }
+                    }
+                }
+
+                // Top-Right Neighbor
+                if (i - 1 >= 0 && j + 1 < columns)
+                {
+                    int Index = (i - 1) * columns + (j + 1);
+                    if (componentSet.Contains(Index))
+                    {
+                        int weight = choose_color(color, i, j, i - 1, j + 1);
+                        int a = Math.Min(v1, Index);
+                        int b = Math.Max(v1, Index);
+
+                        if (addedEdges.Add((a, b)))
+                        {
+                            uniqueEdges.Add((a, b, weight));
+                        }
+                    }
+                }
+
+                // Left Neighbor
+                if (j - 1 >= 0)
+                {
+                    int Index = i * columns + (j - 1);
+                    if (componentSet.Contains(Index))
+                    {
+                        int weight = choose_color(color, i, j, i, j - 1);
+                        int a = Math.Min(v1, Index);
+                        int b = Math.Max(v1, Index);
+
+                        if (addedEdges.Add((a, b)))
+                        {
+                            uniqueEdges.Add((a, b, weight));
+                        }
+                    }
+                }
+
+                // Right Neighbor
+                if (j + 1 < columns)
+                {
+                    int Index = i * columns + (j + 1);
+                    if (componentSet.Contains(Index))
+                    {
+                        int weight = choose_color(color, i, j, i, j + 1);
+                        int a = Math.Min(v1, Index);
+                        int b = Math.Max(v1, Index);
+
+                        if (addedEdges.Add((a, b)))
+                        {
+                            uniqueEdges.Add((a, b, weight));
+                        }
+                    }
+                }
+
+                // Bottom-Left Neighbor
+                if (i + 1 < rows && j - 1 >= 0)
+                {
+                    int Index = (i + 1) * columns + (j - 1);
+                    if (componentSet.Contains(Index))
+                    {
+                        int weight = choose_color(color, i, j, i + 1, j - 1);
+                        int a = Math.Min(v1, Index);
+                        int b = Math.Max(v1, Index);
+
+                        if (addedEdges.Add((a, b)))
+                        {
+                            uniqueEdges.Add((a, b, weight));
+                        }
+                    }
+                }
+
+                // Bottom Neighbor
+                if (i + 1 < rows)
+                {
+                    int Index = (i + 1) * columns + j;
+                    if (componentSet.Contains(Index))
+                    {
+                        int weight = choose_color(color, i, j, i + 1, j);
+                        int a = Math.Min(v1, Index);
+                        int b = Math.Max(v1, Index);
+
+                        if (addedEdges.Add((a, b)))
+                        {
+                            uniqueEdges.Add((a, b, weight));
+                        }
+                    }
+                }
+
+                // Bottom-Right Neighbor
+                if (i + 1 < rows && j + 1 < columns)
+                {
+                    int Index = (i + 1) * columns + (j + 1);
+                    if (componentSet.Contains(Index))
+                    {
+                        int weight = choose_color(color, i, j, i + 1, j + 1);
+                        int a = Math.Min(v1, Index);
+                        int b = Math.Max(v1, Index);
+
+                        if (addedEdges.Add((a, b)))
+                        {
+                            uniqueEdges.Add((a, b, weight));
+                        }
+                    }
+                }
+
             }
 
-            // Internal_Difference uf = new Internal_Difference(component.Max() + 1);
-            /*  member = new int[component.Max() + 1];
-              for (int i = 0; i < member.Length; i++)
-              {
-                  Make_Set(i);
-              }
-             */
 
             uniqueEdges.Sort((a, b) => a.w.CompareTo(b.w));
-
-
-            int maxEdgeWeight = 0;
-            int edgesAdded = 0;
-            int vertices = component.Count;
-
+            foreach (var c in component)
+            {
+                Make_Set(c);
+            }
             foreach (var edge in uniqueEdges)
             {
                 if (Find_set(edge.v1) != Find_set(edge.v2))
                 {
-
                     Union(edge.v1, edge.v2);
                     maxEdgeWeight = Math.Max(maxEdgeWeight, edge.w);
+                    edgesAdded++;
+                    if (edgesAdded == vertices - 1)
+                        break;
+                }
+            }
+         //   Console.WriteLine("RED");
+            return maxEdgeWeight;
+        }
+        public int CalculateInternalDifference_Blue(List<int> component, char color)
+        {
 
+            int maxEdgeWeight = 0;
+            int edgesAdded = 0;
+            int vertices = component.Count;
+            HashSet<int> componentSet = new HashSet<int>(component);
+            List<(int v1, int v2, int w)> uniqueEdges = new List<(int v1, int v2, int w)>();
+            HashSet<(int, int)> addedEdges = new HashSet<(int, int)>();
+
+            foreach (int v1 in component)
+            {
+                int i = (v1 / columns);
+                int j = (v1 % columns);
+
+                //Top - Left Neighbor
+                if (i - 1 >= 0 && j - 1 >= 0)
+                {
+                    int Index = (i - 1) * columns + (j - 1);
+                    if (componentSet.Contains(Index))
+                    {
+
+                        int weight = choose_color(color, i, j, i - 1, j - 1);
+                        int a = Math.Min(v1, Index);
+                        int b = Math.Max(v1, Index);
+
+                        if (addedEdges.Add((a, b)))
+                        {
+                            uniqueEdges.Add((a, b, weight));
+                        }
+                    }
+                }
+
+                // Top Neighbor
+                if (i - 1 >= 0)
+                {
+                    int Index = (i - 1) * columns + j;
+                    if (componentSet.Contains(Index))
+                    {
+                        int weight = choose_color(color, i, j, i - 1, j);
+                        int a = Math.Min(v1, Index);
+                        int b = Math.Max(v1, Index);
+
+                        if (addedEdges.Add((a, b)))
+                        {
+                            uniqueEdges.Add((a, b, weight));
+                        }
+                    }
+                }
+
+                // Top-Right Neighbor
+                if (i - 1 >= 0 && j + 1 < columns)
+                {
+                    int Index = (i - 1) * columns + (j + 1);
+                    if (componentSet.Contains(Index))
+                    {
+                        int weight = choose_color(color, i, j, i - 1, j + 1);
+                        int a = Math.Min(v1, Index);
+                        int b = Math.Max(v1, Index);
+
+                        if (addedEdges.Add((a, b)))
+                        {
+                            uniqueEdges.Add((a, b, weight));
+                        }
+                    }
+                }
+
+                // Left Neighbor
+                if (j - 1 >= 0)
+                {
+                    int Index = i * columns + (j - 1);
+                    if (componentSet.Contains(Index))
+                    {
+                        int weight = choose_color(color, i, j, i, j - 1);
+                        int a = Math.Min(v1, Index);
+                        int b = Math.Max(v1, Index);
+
+                        if (addedEdges.Add((a, b)))
+                        {
+                            uniqueEdges.Add((a, b, weight));
+                        }
+                    }
+                }
+
+                // Right Neighbor
+                if (j + 1 < columns)
+                {
+                    int Index = i * columns + (j + 1);
+                    if (componentSet.Contains(Index))
+                    {
+                        int weight = choose_color(color, i, j, i, j + 1);
+                        int a = Math.Min(v1, Index);
+                        int b = Math.Max(v1, Index);
+
+                        if (addedEdges.Add((a, b)))
+                        {
+                            uniqueEdges.Add((a, b, weight));
+                        }
+                    }
+                }
+
+                // Bottom-Left Neighbor
+                if (i + 1 < rows && j - 1 >= 0)
+                {
+                    int Index = (i + 1) * columns + (j - 1);
+                    if (componentSet.Contains(Index))
+                    {
+                        int weight = choose_color(color, i, j, i + 1, j - 1);
+                        int a = Math.Min(v1, Index);
+                        int b = Math.Max(v1, Index);
+
+                        if (addedEdges.Add((a, b)))
+                        {
+                            uniqueEdges.Add((a, b, weight));
+                        }
+                    }
+                }
+
+                // Bottom Neighbor
+                if (i + 1 < rows)
+                {
+                    int Index = (i + 1) * columns + j;
+                    if (componentSet.Contains(Index))
+                    {
+                        int weight = choose_color(color, i, j, i + 1, j);
+                        int a = Math.Min(v1, Index);
+                        int b = Math.Max(v1, Index);
+
+                        if (addedEdges.Add((a, b)))
+                        {
+                            uniqueEdges.Add((a, b, weight));
+                        }
+                    }
+                }
+
+                // Bottom-Right Neighbor
+                if (i + 1 < rows && j + 1 < columns)
+                {
+                    int Index = (i + 1) * columns + (j + 1);
+                    if (componentSet.Contains(Index))
+                    {
+                        int weight = choose_color(color, i, j, i + 1, j + 1);
+                        int a = Math.Min(v1, Index);
+                        int b = Math.Max(v1, Index);
+
+                        if (addedEdges.Add((a, b)))
+                        {
+                            uniqueEdges.Add((a, b, weight));
+                        }
+                    }
+                }
+
+            }
+
+
+            uniqueEdges.Sort((a, b) => a.w.CompareTo(b.w));
+            foreach(var c in component)
+            {
+                Make_Set(c);
+            }
+            foreach (var edge in uniqueEdges)
+            {
+                if (Find_set(edge.v1) != Find_set(edge.v2))
+                {
+                    Union(edge.v1, edge.v2);
+                    maxEdgeWeight = Math.Max(maxEdgeWeight, edge.w);
                     edgesAdded++;
                     if (edgesAdded == vertices - 1)
                         break;
                 }
             }
 
+         //   Console.WriteLine("Blue");
             return maxEdgeWeight;
         }
-
-        public Dictionary<int, (int maxInternalDifference, List<long> pixels)> CalculateFinalInternalDifferences(
-         Dictionary<long, List<long>> components,
-         Dictionary<long, List<Tuple<long, int>>> redGraph,
-         Dictionary<long, List<Tuple<long, int>>> greenGraph,
-         Dictionary<long, List<Tuple<long, int>>> blueGraph)
+        public int CalculateInternalDifference_Green(List<int> component, char color)
         {
-            var internalDifferences = new Dictionary<int, (int maxInternalDifference, List<long> pixels)>();
+            int maxEdgeWeight = 0;
+            int edgesAdded = 0;
+            int vertices = component.Count;
+            HashSet<int> componentSet = new HashSet<int>(component);
+            List<(int v1, int v2, int w)> uniqueEdges = new List<(int v1, int v2, int w)>();
+            HashSet<(int, int)> addedEdges = new HashSet<(int, int)>();
 
-            int compId = 0;
-            foreach (var c in components)
+            foreach (int v1 in component)
             {
-                long componentId = c.Key;
-                List<long> component = c.Value;
-                if (componentId == -1) 
-                    continue; 
-                if (component.Count == 0)
-                    continue;
+                int i = (v1 / columns);
+                int j = (v1 % columns);
 
-                int redIntDiff = CalculateInternalDifference(component, redGraph);
-                int greenIntDiff = CalculateInternalDifference(component, greenGraph);
-                int blueIntDiff = CalculateInternalDifference(component, blueGraph);
+                //Top - Left Neighbor
+                if (i - 1 >= 0 && j - 1 >= 0)
+                {
+                    int Index = (i - 1) * columns + (j - 1);
+                    if (componentSet.Contains(Index))
+                    {
+
+                        int weight = choose_color(color, i, j, i - 1, j - 1);
+                        int a = Math.Min(v1, Index);
+                        int b = Math.Max(v1, Index);
+
+                        if (addedEdges.Add((a, b)))
+                        {
+                            uniqueEdges.Add((a, b, weight));
+                        }
+                    }
+                }
+
+                // Top Neighbor
+                if (i - 1 >= 0)
+                {
+                    int Index = (i - 1) * columns + j;
+                    if (componentSet.Contains(Index))
+                    {
+                        int weight = choose_color(color, i, j, i - 1, j);
+                        int a = Math.Min(v1, Index);
+                        int b = Math.Max(v1, Index);
+
+                        if (addedEdges.Add((a, b)))
+                        {
+                            uniqueEdges.Add((a, b, weight));
+                        }
+                    }
+                }
+
+                // Top-Right Neighbor
+                if (i - 1 >= 0 && j + 1 < columns)
+                {
+                    int Index = (i - 1) * columns + (j + 1);
+                    if (componentSet.Contains(Index))
+                    {
+                        int weight = choose_color(color, i, j, i - 1, j + 1);
+                        int a = Math.Min(v1, Index);
+                        int b = Math.Max(v1, Index);
+
+                        if (addedEdges.Add((a, b)))
+                        {
+                            uniqueEdges.Add((a, b, weight));
+                        }
+                    }
+                }
+
+                // Left Neighbor
+                if (j - 1 >= 0)
+                {
+                    int Index = i * columns + (j - 1);
+                    if (componentSet.Contains(Index))
+                    {
+                        int weight = choose_color(color, i, j, i, j - 1);
+                        int a = Math.Min(v1, Index);
+                        int b = Math.Max(v1, Index);
+
+                        if (addedEdges.Add((a, b)))
+                        {
+                            uniqueEdges.Add((a, b, weight));
+                        }
+                    }
+                }
+
+                // Right Neighbor
+                if (j + 1 < columns)
+                {
+                    int Index = i * columns + (j + 1);
+                    if (componentSet.Contains(Index))
+                    {
+                        int weight = choose_color(color, i, j, i, j + 1);
+                        int a = Math.Min(v1, Index);
+                        int b = Math.Max(v1, Index);
+
+                        if (addedEdges.Add((a, b)))
+                        {
+                            uniqueEdges.Add((a, b, weight));
+                        }
+                    }
+                }
+
+                // Bottom-Left Neighbor
+                if (i + 1 < rows && j - 1 >= 0)
+                {
+                    int Index = (i + 1) * columns + (j - 1);
+                    if (componentSet.Contains(Index))
+                    {
+                        int weight = choose_color(color, i, j, i + 1, j - 1);
+                        int a = Math.Min(v1, Index);
+                        int b = Math.Max(v1, Index);
+
+                        if (addedEdges.Add((a, b)))
+                        {
+                            uniqueEdges.Add((a, b, weight));
+                        }
+                    }
+                }
+
+                // Bottom Neighbor
+                if (i + 1 < rows)
+                {
+                    int Index = (i + 1) * columns + j;
+                    if (componentSet.Contains(Index))
+                    {
+                        int weight = choose_color(color, i, j, i + 1, j);
+                        int a = Math.Min(v1, Index);
+                        int b = Math.Max(v1, Index);
+
+                        if (addedEdges.Add((a, b)))
+                        {
+                            uniqueEdges.Add((a, b, weight));
+                        }
+                    }
+                }
+
+                // Bottom-Right Neighbor
+                if (i + 1 < rows && j + 1 < columns)
+                {
+                    int Index = (i + 1) * columns + (j + 1);
+                    if (componentSet.Contains(Index))
+                    {
+                        int weight = choose_color(color, i, j, i + 1, j + 1);
+                        int a = Math.Min(v1, Index);
+                        int b = Math.Max(v1, Index);
+
+                        if (addedEdges.Add((a, b)))
+                        {
+                            uniqueEdges.Add((a, b, weight));
+                        }
+                    }
+                }
+
+            }
+
+
+            uniqueEdges.Sort((a, b) => a.w.CompareTo(b.w));
+            foreach (var c in component)
+            {
+                Make_Set(c);
+            }
+            foreach (var edge in uniqueEdges)
+            {
+                if (Find_set(edge.v1) != Find_set(edge.v2))
+                {
+                    Union(edge.v1, edge.v2);
+                    maxEdgeWeight = Math.Max(maxEdgeWeight, edge.w);
+                    edgesAdded++;
+                    if (edgesAdded == vertices - 1)
+                        break;
+                }
+            }
+
+         //   Console.WriteLine("Green");
+            return maxEdgeWeight;
+
+        }
+
+        public Dictionary<int, (int maxInternalDifference, List<int> pixels)> CalculateFinalInternalDifferences(Dictionary<int, List<int>> pixels)
+        {
+            var internalDifferences = new Dictionary<int, (int maxInternalDifference, List<int> pixels)>();
+            int i = 0;
+            int compId = 0;
+            for (int j = 0; j < pixels.Count; j++)
+            {
+
+                int redIntDiff = CalculateInternalDifference_Red(pixels[j], 'r');
+                int greenIntDiff = CalculateInternalDifference_Green(pixels[j], 'g');
+                int blueIntDiff = CalculateInternalDifference_Blue(pixels[j], 'b');
 
                 int maxInternalDifference = Math.Max(redIntDiff, Math.Max(greenIntDiff, blueIntDiff));
-                internalDifferences[compId] = (maxInternalDifference, component);
+                internalDifferences[compId] = (maxInternalDifference, pixels[j]);
                 compId++;
+
             }
             return internalDifferences;
         }
-        public Dictionary<Tuple<long, long>, int> Difference_between_2_components(Dictionary<long, List<long>> component, long size, Dictionary<long, List<Tuple<long, int>>> redGraph,
-         Dictionary<long, List<Tuple<long, int>>> greenGraph,
-         Dictionary<long, List<Tuple<long, int>>> blueGraph)//change it to list of list of components
+
+
+        public Dictionary<Tuple<int, int>, int> Difference_between_2_components(Dictionary<int,List<int>> component)
         {
-            long[] Root = new long[size];
-            foreach (var c in component)
+            List<HashSet<int>> componentSet = new List<HashSet<int>>();
+            foreach(var v in component)
             {
-                long i = c.Key;
-               foreach(var numofPixel in c.Value)
-               {
-                    Root[numofPixel] = i;
-               }
-          
+                HashSet<int> set = new HashSet<int>(v.Values);
+                componentSet.Add(set);
             }
+            Dictionary<Tuple<int, int>, int> bounderies_between_components = new Dictionary<Tuple<int, int>, int>();
 
-            Dictionary<Tuple<long, long>, int> bounderies_between_components = new Dictionary<Tuple<long, long>, int>();
-
-
-            foreach(var parent in redGraph.Keys)
+            int numberOfComponents = 0;
+            foreach(var l in component)
             {
-                long current_root = Root[parent];
-                int i = 0;
-                foreach (var child in redGraph[parent])
+                var comp = componentSet[0];
+                foreach(var p in l)
                 {
-                    long neighbor_root = Root[child.Item1];
+                    int thisComp = GetCompId(p);
 
-                    int red_weight = redGraph[parent][i].Item2;
-                    int blue_weight = blueGraph[parent][i].Item2;
-                    int green_weight = greenGraph[parent][i].Item2;
-                    i++;
-                    int weight = Math.Max(red_weight, Math.Max(blue_weight, green_weight));
-                    if (neighbor_root == current_root)
-                        continue;
+                    int NeighborComponent;
+                    int i = (l / columns);
+                    int j = (l % columns);
 
-                    Tuple<long, long> key;
-                    if(current_root<neighbor_root)
-                        key = Tuple.Create(current_root,neighbor_root);
-                    else
-                        key = Tuple.Create(neighbor_root,current_root);
-
-                    if (!bounderies_between_components.ContainsKey(key))
+                    //Top - Left Neighbor
+                    if (i - 1 >= 0 && j - 1 >= 0)
                     {
-                        bounderies_between_components[key] = weight;
+                        int Index = (i - 1) * columns + (j - 1);
+
+                        if (!comp.Contains(Index))
+                        {
+
+                            int red_weight = choose_color('r', i, j, i - 1, j - 1);
+                            int blue_weight = choose_color('b', i, j, i - 1, j - 1);
+                            int green_weight = choose_color('g', i, j, i - 1, j - 1);
+                            int final_weight= Math.Max(red_weight,Math.Max(green_weight, blue_weight));
+                            
+                            NeighborComponent = GetCompId(Index);
+                            
+                            if (!bounderies_between_components.ContainsKey((thisComp, NeighborComponent)))
+                                bounderies_between_components.Add((thisComp, NeighborComponent), final_weight);
+                            else
+                            {
+                                if (bounderies_between_components[(thisComp,NeighborComponent)]<=final_weight)
+                                    bounderies_between_components[(thisComp, NeighborComponent)] = final_weight;
+                                
+                            }
+                        }
                     }
-                    else
+
+                    // Top Neighbor
+                    if (i - 1 >= 0)
                     {
-                        if (weight < bounderies_between_components[key])
-                            bounderies_between_components[key] = weight;
+                        int Index = (i - 1) * columns + j;
+                        if (!comp.Contains(Index))
+                        {
+                            int red_weight = choose_color('r', i, j, i - 1, j );
+                            int blue_weight = choose_color('b', i, j, i - 1, j );
+                            int green_weight = choose_color('g', i, j, i - 1, j);
+                            int final_weight = Math.Max(red_weight, Math.Max(green_weight, blue_weight));
+
+                            NeighborComponent = GetCompId(Index);
+
+                            if (!bounderies_between_components.ContainsKey((thisComp, NeighborComponent)))
+                                bounderies_between_components.Add((thisComp, NeighborComponent), final_weight);
+                            else
+                            {
+                                if (bounderies_between_components[(thisComp, NeighborComponent)] <= final_weight)
+                                    bounderies_between_components[(thisComp, NeighborComponent)] = final_weight;
+
+                            }
+                        }
+                    }
+
+                    // Top-Right Neighbor
+                    if (i - 1 >= 0 && j + 1 < columns)
+                    {
+                        int Index = (i - 1) * columns + (j + 1);
+                        if (!comp.Contains(Index))
+                        {
+                            int red_weight = choose_color('r', i, j, i - 1, j + 1);
+                            int blue_weight = choose_color('b', i, j, i - 1, j + 1);
+                            int green_weight = choose_color('g', i, j, i - 1, j + 1);
+                            int final_weight = Math.Max(red_weight, Math.Max(green_weight, blue_weight));
+
+                            NeighborComponent = GetCompId(Index);
+
+                            if (!bounderies_between_components.ContainsKey((thisComp, NeighborComponent)))
+                                bounderies_between_components.Add((thisComp, NeighborComponent), final_weight);
+                            else
+                            {
+                                if (bounderies_between_components[(thisComp, NeighborComponent)] <= final_weight)
+                                    bounderies_between_components[(thisComp, NeighborComponent)] = final_weight;
+
+                            }
+                        }
+                    }
+
+                    // Left Neighbor
+                    if (j - 1 >= 0)
+                    {
+                        int Index = i * columns + (j - 1);
+                        if (!comp.Contains(Index))
+                        {
+                            int red_weight = choose_color('r', i, j, i , j - 1);
+                            int blue_weight = choose_color('b', i, j, i, j - 1);
+                            int green_weight = choose_color('g', i, j, i, j - 1);
+
+                            int final_weight = Math.Max(red_weight, Math.Max(green_weight, blue_weight));
+
+                            NeighborComponent = GetCompId(Index);
+
+                            if (!bounderies_between_components.ContainsKey((thisComp, NeighborComponent)))
+                                bounderies_between_components.Add((thisComp, NeighborComponent), final_weight);
+                            else
+                            {
+                                if (bounderies_between_components[(thisComp, NeighborComponent)] <= final_weight)
+                                    bounderies_between_components[(thisComp, NeighborComponent)] = final_weight;
+
+                            }
+                        }
+                    }
+
+                    // Right Neighbor
+                    if (j + 1 < columns)
+                    {
+                        int Index = i * columns + (j + 1);
+                        if (!comp.Contains(Index))
+                        {
+                            int red_weight = choose_color('r', i, j, i , j + 1);
+                            int blue_weight = choose_color('b', i, j, i , j + 1);
+                            int green_weight = choose_color('g', i, j, i, j + 1);
+
+                            int final_weight = Math.Max(red_weight, Math.Max(green_weight, blue_weight));
+
+                            NeighborComponent = GetCompId(Index);
+
+                            if (!bounderies_between_components.ContainsKey((thisComp, NeighborComponent)))
+                                bounderies_between_components.Add((thisComp, NeighborComponent), final_weight);
+                            else
+                            {
+                                if (bounderies_between_components[(thisComp, NeighborComponent)] <= final_weight)
+                                    bounderies_between_components[(thisComp, NeighborComponent)] = final_weight;
+
+                            }
+                        }
+                    }
+
+                    // Bottom-Left Neighbor
+                    if (i + 1 < rows && j - 1 >= 0)
+                    {
+                        int Index = (i + 1) * columns + (j - 1);
+                        if (!comp.Contains(Index))
+                        {
+                            int red_weight = choose_color('r', i, j, i + 1, j - 1);
+                            int blue_weight = choose_color('b', i, j, i + 1, j - 1);
+                            int green_weight = choose_color('g', i, j, i + 1, j - 1);
+
+                            int final_weight = Math.Max(red_weight, Math.Max(green_weight, blue_weight));
+
+                            NeighborComponent = GetCompId(Index);
+
+                            if (!bounderies_between_components.ContainsKey((thisComp, NeighborComponent)))
+                                bounderies_between_components.Add((thisComp, NeighborComponent), final_weight);
+                            else
+                            {
+                                if (bounderies_between_components[(thisComp, NeighborComponent)] <= final_weight)
+                                    bounderies_between_components[(thisComp, NeighborComponent)] = final_weight;
+
+                            }
+                        }
+                    }
+
+                    // Bottom Neighbor
+                    if (i + 1 < rows)
+                    {
+                        int Index = (i + 1) * columns + j;
+                        if (!comp.Contains(Index))
+                        {
+                            int red_weight = choose_color('r', i, j, i + 1, j);
+                            int blue_weight = choose_color('b', i, j, i + 1 j);
+                            int green_weight = choose_color('g', i, j, i + 1, j);
+
+                            int final_weight = Math.Max(red_weight, Math.Max(green_weight, blue_weight));
+
+                            NeighborComponent = GetCompId(Index);
+
+                            if (!bounderies_between_components.ContainsKey((thisComp, NeighborComponent)))
+                                bounderies_between_components.Add((thisComp, NeighborComponent), final_weight);
+                            else
+                            {
+                                if (bounderies_between_components[(thisComp, NeighborComponent)] <= final_weight)
+                                    bounderies_between_components[(thisComp, NeighborComponent)] = final_weight;
+
+                            }
+                        }
+                    }
+
+                    // Bottom-Right Neighbor
+                    if (i + 1 < rows && j + 1 < columns)
+                    {
+                        int Index = (i + 1) * columns + (j + 1);
+                        if (!comp.Contains(Index))
+                        {
+                            int red_weight = choose_color('r', i, j, i + 1, j + 1);
+                            int blue_weight = choose_color('b', i, j, i + 1, j + 1);
+                            int green_weight = choose_color('g', i, j, i + 1, j + 1);
+                            
+                            int final_weight = Math.Max(red_weight, Math.Max(green_weight, blue_weight));
+
+                            NeighborComponent = GetCompId(Index);
+
+                            if (!bounderies_between_components.ContainsKey((thisComp, NeighborComponent)))
+                                bounderies_between_components.Add((thisComp, NeighborComponent), final_weight);
+                            else
+                            {
+                                if (bounderies_between_components[(thisComp, NeighborComponent)] <= final_weight)
+                                    bounderies_between_components[(thisComp, NeighborComponent)] = final_weight;
+
+                            }
+                        }
                     }
                 }
             }
             Console.WriteLine("====================Bounderies=====================");
-            foreach(var p in bounderies_between_components)
+            foreach (var p in bounderies_between_components)
             {
-                Console.WriteLine("bounderies between component " + p.Key.Item1 + " and " + p.Key.Item2 + " = "+p.Value);
+                Console.WriteLine("bounderies between component " + p.Key.Item1 + " and " + p.Key.Item2 + " = " + p.Value);
             }
             Console.WriteLine("====================================================");
             return bounderies_between_components;
