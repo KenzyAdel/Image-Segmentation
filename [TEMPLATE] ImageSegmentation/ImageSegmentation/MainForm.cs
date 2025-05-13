@@ -71,8 +71,35 @@ namespace ImageTemplate
             //segmentation.Red_Segment();
             //segmentation.GetCombinedComponents();
             segmentation.SegmentImage();
+            Console.WriteLine("\n=== Components and Pixel Counts ===");
+            foreach (var component in segmentation._componentPixels)
+            {
+                int componentId = component.Key;
+                List<int> pixels = new List<int>();
+
+                // Collect pixels with non-zero intensities and count them
+
+
+                // Print component details
+                Console.Write($"Component {componentId}: ");
+                //bool first = true;
+                /*foreach (long pixel in pixels)
+                {
+                    if (!first) Console.Write(", ");
+                    Console.Write($"arr[{pixel}] = {intensities[pixel]}");
+                    first = false;
+                }*/
+                Console.WriteLine($" (Count: {component.Value.Count})");
+                //}
+
+
+                // }
+            }
+
+
             internal_diff.CalculateFinalInternalDifferences(segmentation._componentPixels);
             internal_diff.Difference_between_2_components(segmentation._componentPixels);
+           // internal_diff.Difference_between_2_components(segmentation._componentPixels);
             //  List<(long v1, long v2, int w)> Blue_Weight;
             // List<(long v1, long v2, int w)> Green_Weight;
 
@@ -112,37 +139,7 @@ namespace ImageTemplate
             // PrintComponentCounts(segmentation.blueMap);
 
             // Print all components and their pixel counts
-            Console.WriteLine("\n=== Components and Pixel Counts ===");
-            foreach (var component in segmentation._componentPixels)
-            {
-                long componentId = component.Key;
-                List<long> pixels = new List<long>();
-                int pixelCount = 0;
-
-                // Collect pixels with non-zero intensities and count them
-                for (long pixel = 0; pixel < component.Value.Count; pixel++)
-                {
-
-                    pixels.Add(pixel);
-                    pixelCount++;
-
-                }
-
-                // Print component details
-                Console.Write($"Component {componentId}: ");
-                //bool first = true;
-                /*foreach (long pixel in pixels)
-                {
-                    if (!first) Console.Write(", ");
-                    Console.Write($"arr[{pixel}] = {intensities[pixel]}");
-                    first = false;
-                }*/
-                Console.WriteLine($" (Count: {pixelCount})");
-                //}
-
-
-                // }
-            }
+           
             MessageBox.Show("Red weights printed to console!");
             //  ImageOperations.DisplayImage(ImageMatrix, pictureBox2);
 

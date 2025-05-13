@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Windows.Forms;
 
 namespace ImageTemplate
 {
@@ -58,9 +59,14 @@ namespace ImageTemplate
       
        
         private void union(int x, int y,int weight,int []member)
-        {
-            int parent_y = Find_set(y,member);
-            member[parent_y] = Find_set(x, member);
+        { 
+
+            int root_x = Find_set(x, member);
+            int root_y = Find_set(y, member);
+            if(root_x>root_y)
+                member[root_x] = root_y;
+            else
+                member[root_y] = root_x;
         }
         private int choose_color(char color,int i,int j,int i2,int j2)
         {
@@ -808,87 +814,137 @@ namespace ImageTemplate
 
         public Dictionary<int, List<int>> GetCombinedComponents()
         {
-             Dictionary<int, List<int>> Red_component = new Dictionary<int, List<int>>();
-             Dictionary<int, List<int>> Blue_component = new Dictionary<int, List<int>>();
-             Dictionary<int, List<int>> Green_component = new Dictionary<int, List<int>>();
-         
-                for (int pixel = 0; pixel < M; pixel++)
+            Dictionary<int, List<int>> Red_component = new Dictionary<int, List<int>>();
+            Dictionary<int, List<int>> Blue_component = new Dictionary<int, List<int>>();
+            Dictionary<int, List<int>> Green_component = new Dictionary<int, List<int>>();
+            Dictionary<int, List<int>> Different_component = new Dictionary<int, List<int>>();
+
+            for (int pixel = 0; pixel < M; pixel++)
+            {
+                int redId = Find_set(pixel, red_member);
+                int greenId = Find_set(pixel, green_member);
+                int blueId = Find_set(pixel, blue_member);
+
+                int componentId = redId;
+                bool isValidComponent = false;
+                if ((redId == greenId && redId == blueId)) // All match
                 {
-                    int redId = red_member[pixel];
-                    int greenId = green_member[pixel];
-                    int blueId = blue_member[pixel];
+                    isValidComponent = true;
+                    componentId = redId;
+                }
 
-                    int componentId = redId;
-                    bool isValidComponent = false;
-                    if ((redId == greenId && redId == blueId)) // All match
+                if (isValidComponent)
+                {
+                    if (!_componentPixels.ContainsKey(componentId))
+                        _componentPixels[componentId] = new List<int>();
+
+                    if (!_componentPixels[componentId].Contains(pixel))
+                        _componentPixels[componentId].Add(pixel);
+                }
+                else
+                {
+                    if (redId == greenId && redId != blueId)
                     {
-                        isValidComponent = true;
-                        componentId = redId;
+                        if (!Blue_component.ContainsKey(blueId))
+                            Blue_component[blueId] = new List<int>();
+
+                        Blue_component[blueId].Add(pixel);
+
                     }
-
-                    if (isValidComponent)
+                    else if (redId == blueId && redId != greenId)// Red and Green
                     {
-                        if (!_componentPixels.ContainsKey(componentId))
-                            _componentPixels[componentId] = new List<int>();
+                        if (!Green_component.ContainsKey(greenId))
+                            Green_component[greenId] = new List<int>();
 
-                        if (!_componentPixels[componentId].Contains(pixel))
-                            _componentPixels[componentId].Add(pixel);
+                        Green_component[greenId].Add(pixel);
+                    }
+                    else if ((greenId == blueId && greenId != redId))
+                    {
+                        if (!Red_component.ContainsKey(redId))
+                            Red_component[redId] = new List<int>();
+
+                        Red_component[redId].Add(pixel);
+                        //Console.WriteLine("HEyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy");
                     }
                     else
                     {
-                        if (redId == greenId && redId != blueId)
-                        {
-                            if (!Blue_component.ContainsKey(blueId))
-                                Blue_component[blueId] = new List<int>();
+                        if (!Different_component.ContainsKey(blueId))
+                            Different_component[blueId] = new List<int>();
 
-                            Blue_component[blueId].Add(pixel);
-
-                        }
-                        else if (redId == blueId && redId != greenId)// Red and Green
-                        {
-                            if (!Green_component.ContainsKey(greenId))
-                                Green_component[greenId] = new List<int>();
-
-                            Green_component[greenId].Add(pixel);
-                        }
-                        else if ((greenId == blueId && greenId != redId))
-                        {
-                            if (!Red_component.ContainsKey(redId))
-                                Red_component[redId] = new List<int>();
-
-                            Red_component[redId].Add(pixel);
-                        }
+                        Different_component[blueId].Add(pixel);
                     }
                 }
-            //Console.WriteLine("RED Components: ");
-            //foreach(var v in Red_component)
-            //Console.WriteLine(v.Value.Count);
-            //Console.WriteLine("Green Components: ");
-            //foreach (var v in Green_component)
-            //    Console.WriteLine(v.Value.Count);
+            }
+            Console.WriteLine("RED Components: ");
+            foreach (var v in Red_component)
+                Console.WriteLine(v.Value.Count);
+            Console.WriteLine("Green Components: ");
+            foreach (var v in Green_component)
+                Console.WriteLine(v.Value.Count);
 
-            int red_key = 1000000;
-            int blue_key = 2000000;
-            int green_key = 3000000;
-            foreach(var v in  Red_component)
+            int red_key = 10000000;
+            int blue_key = 20000000;
+            int green_key = 30000000;
+            int different_key = 40000000;
+            foreach (var v in Red_component)
             {
-                   
-                _componentPixels.Add(red_key + red_member[v.Value[0]], v.Value);
-                red_key++;
+                if (_componentPixels.ContainsKey(red_key + red_member[v.Value[0]]))
+                    MessageBox.Show("Red Here!");
+
+                _componentPixels[red_key + red_member[v.Value[0]]] = new List<int>(v.Value);
             }
             foreach (var v in Green_component)
             {
-                _componentPixels.Add (green_key+ green_member[v.Value[0]], v.Value);
-                green_key++;
+                if (_componentPixels.ContainsKey(green_key + green_member[v.Value[0]]))
+                    MessageBox.Show("Green Here!");
+                _componentPixels[green_key + green_member[v.Value[0]]] = new List<int>(v.Value);
+
             }
             foreach (var v in Blue_component)
             {
-                _componentPixels.Add(blue_key + blue_member[v.Value[0]], v.Value);
-                blue_key++;
+                if (_componentPixels.ContainsKey(blue_key + blue_member[v.Value[0]]))
+                    MessageBox.Show("Blue Here!");
+
+                _componentPixels[blue_key + blue_member[v.Value[0]]] = new List<int>(v.Value);
+
             }
-            //Blue_component=null; 
-            //Red_component=null;
-            //Green_component=null;
+            foreach (var v in Different_component)
+            {
+                if (_componentPixels.ContainsKey(different_key + blue_member[v.Value[0]]))
+                    MessageBox.Show("Blue Here!");
+
+                _componentPixels[different_key + blue_member[v.Value[0]]] = new List<int>(v.Value);
+
+                Console.WriteLine("\n=== Components and Pixel Counts ===");
+                foreach (var component in _componentPixels)
+                {
+                    long componentId = component.Key;
+                    List<long> pixels = new List<long>();
+                    int pixelCount = 0;
+
+                    // Collect pixels with non-zero intensities and count them
+
+
+                    // Print component details
+                    Console.Write($"Component {componentId}: ");
+                    //bool first = true;
+                    /*foreach (long pixel in pixels)
+                    {
+                        if (!first) Console.Write(", ");
+                        Console.Write($"arr[{pixel}] = {intensities[pixel]}");
+                        first = false;
+                    }*/
+                    Console.WriteLine($" (Count: {component.Value.Count})");
+                    //}
+
+
+                    // }
+                }
+                //Blue_component=null; 
+                //Red_component=null;
+                //Green_component=null;
+
+            }
             return _componentPixels;
         }
         public void SegmentImage()
@@ -897,9 +953,9 @@ namespace ImageTemplate
             this.Blue_Segment();
             this.Green_Segment();
             this.Red_Segment();
-            //  List<(int, int, int)> red_edges = segmentation.edges(,'r');
+
             Dictionary<int, List<int>> storered = new Dictionary<int, List<int>>();
-            for(int a=0;a<red_member.Length;a++)
+            for (int a = 0; a < red_member.Length; a++)
             {
                 if (!storered.ContainsKey(red_member[a]))
                     storered[red_member[a]] = new List<int>();
@@ -913,21 +969,28 @@ namespace ImageTemplate
                     storegreen[green_member[a]] = new List<int>();
                 storegreen[green_member[a]].Add(a);
             }
+            Dictionary<int, List<int>> storeblue = new Dictionary<int, List<int>>();
+            for (int a = 0; a < blue_member.Length; a++)
+            {
+                if (!storeblue.ContainsKey(blue_member[a]))
+                    storeblue[blue_member[a]] = new List<int>();
+                storeblue[blue_member[a]].Add(a);
+            }
             Console.WriteLine("RED Components: ");
             foreach (var v in storered)
                 Console.WriteLine(v.Value.Count);
+
             Console.WriteLine("Green Components: ");
             foreach (var v in storegreen)
                 Console.WriteLine(v.Value.Count);
 
+            Console.WriteLine("Blue Components: ");
+            foreach (var v in storeblue)
+                Console.WriteLine(v.Value.Count);
+
             _componentPixels.Clear();
              GetCombinedComponents();
-            //foreach (var component in components)
-            //{
-            //    red_edges.Add(edges(component.Value, 'r'));
-            //    blue_edges.Add(edges(component.Value, 'b'));
-            //    green_edges.Add(edges(component.Value, 'g'));
-            //}
+          
         }
     }
 }

@@ -69,15 +69,15 @@ namespace ImageTemplate
 
             if (red == green && blue != red)
             {
-                NeighborComponent = 2000000 + blue;
+                NeighborComponent = 20000000 + blue;
             }
             else if (green == blue && green != red)
             {
-                NeighborComponent = 1000000 + red;
+                NeighborComponent = 10000000 + red;
             }
             else if (red == blue && red != green)
             {
-                NeighborComponent = 3000000 + green;
+                NeighborComponent = 30000000 + green;
             }
             else
             {
@@ -616,15 +616,15 @@ namespace ImageTemplate
             var internalDifferences = new Dictionary<int, (int maxInternalDifference, List<int> pixels)>();
             int i = 0;
             int compId = 0;
-            for (int j = 0; j < pixels.Count; j++)
+            foreach (var pixel in pixels.Values)
             {
 
-                int redIntDiff = CalculateInternalDifference_Red(pixels[j], 'r');
-                int greenIntDiff = CalculateInternalDifference_Green(pixels[j], 'g');
-                int blueIntDiff = CalculateInternalDifference_Blue(pixels[j], 'b');
+                int redIntDiff = CalculateInternalDifference_Red(pixel, 'r');
+                int greenIntDiff = CalculateInternalDifference_Green(pixel, 'g');
+                int blueIntDiff = CalculateInternalDifference_Blue(pixel, 'b');
 
                 int maxInternalDifference = Math.Max(redIntDiff, Math.Max(greenIntDiff, blueIntDiff));
-                internalDifferences[compId] = (maxInternalDifference, pixels[j]);
+                internalDifferences[compId] = (maxInternalDifference, pixel);
                 compId++;
 
             }
@@ -637,22 +637,21 @@ namespace ImageTemplate
             List<HashSet<int>> componentSet = new List<HashSet<int>>();
             foreach(var v in component)
             {
-                HashSet<int> set = new HashSet<int>(v.Values);
+                HashSet<int> set = new HashSet<int>(v.Value);
                 componentSet.Add(set);
             }
             Dictionary<Tuple<int, int>, int> bounderies_between_components = new Dictionary<Tuple<int, int>, int>();
 
-            int numberOfComponents = 0;
             foreach(var l in component)
             {
                 var comp = componentSet[0];
-                foreach(var p in l)
+                foreach(var p in l.Value)
                 {
                     int thisComp = GetCompId(p);
 
                     int NeighborComponent;
-                    int i = (l / columns);
-                    int j = (l % columns);
+                    int i = (p / columns);
+                    int j = (p % columns);
 
                     //Top - Left Neighbor
                     if (i - 1 >= 0 && j - 1 >= 0)
@@ -668,13 +667,13 @@ namespace ImageTemplate
                             int final_weight= Math.Max(red_weight,Math.Max(green_weight, blue_weight));
                             
                             NeighborComponent = GetCompId(Index);
-                            
-                            if (!bounderies_between_components.ContainsKey((thisComp, NeighborComponent)))
-                                bounderies_between_components.Add((thisComp, NeighborComponent), final_weight);
+                            var key= Tuple.Create(thisComp, NeighborComponent);
+                            if (!bounderies_between_components.ContainsKey(key))
+                                bounderies_between_components.Add(key, final_weight);
                             else
                             {
-                                if (bounderies_between_components[(thisComp,NeighborComponent)]<=final_weight)
-                                    bounderies_between_components[(thisComp, NeighborComponent)] = final_weight;
+                                if (bounderies_between_components[key]<=final_weight)
+                                    bounderies_between_components[key] = final_weight;
                                 
                             }
                         }
@@ -693,12 +692,13 @@ namespace ImageTemplate
 
                             NeighborComponent = GetCompId(Index);
 
-                            if (!bounderies_between_components.ContainsKey((thisComp, NeighborComponent)))
-                                bounderies_between_components.Add((thisComp, NeighborComponent), final_weight);
+                            var key = Tuple.Create(thisComp, NeighborComponent);
+                            if (!bounderies_between_components.ContainsKey(key))
+                                bounderies_between_components.Add(key, final_weight);
                             else
                             {
-                                if (bounderies_between_components[(thisComp, NeighborComponent)] <= final_weight)
-                                    bounderies_between_components[(thisComp, NeighborComponent)] = final_weight;
+                                if (bounderies_between_components[key] <= final_weight)
+                                    bounderies_between_components[key] = final_weight;
 
                             }
                         }
@@ -717,12 +717,13 @@ namespace ImageTemplate
 
                             NeighborComponent = GetCompId(Index);
 
-                            if (!bounderies_between_components.ContainsKey((thisComp, NeighborComponent)))
-                                bounderies_between_components.Add((thisComp, NeighborComponent), final_weight);
+                            var key = Tuple.Create(thisComp, NeighborComponent);
+                            if (!bounderies_between_components.ContainsKey(key))
+                                bounderies_between_components.Add(key, final_weight);
                             else
                             {
-                                if (bounderies_between_components[(thisComp, NeighborComponent)] <= final_weight)
-                                    bounderies_between_components[(thisComp, NeighborComponent)] = final_weight;
+                                if (bounderies_between_components[key] <= final_weight)
+                                    bounderies_between_components[key] = final_weight;
 
                             }
                         }
@@ -742,12 +743,13 @@ namespace ImageTemplate
 
                             NeighborComponent = GetCompId(Index);
 
-                            if (!bounderies_between_components.ContainsKey((thisComp, NeighborComponent)))
-                                bounderies_between_components.Add((thisComp, NeighborComponent), final_weight);
+                            var key = Tuple.Create(thisComp, NeighborComponent);
+                            if (!bounderies_between_components.ContainsKey(key))
+                                bounderies_between_components.Add(key, final_weight);
                             else
                             {
-                                if (bounderies_between_components[(thisComp, NeighborComponent)] <= final_weight)
-                                    bounderies_between_components[(thisComp, NeighborComponent)] = final_weight;
+                                if (bounderies_between_components[key] <= final_weight)
+                                    bounderies_between_components[key] = final_weight;
 
                             }
                         }
@@ -767,12 +769,13 @@ namespace ImageTemplate
 
                             NeighborComponent = GetCompId(Index);
 
-                            if (!bounderies_between_components.ContainsKey((thisComp, NeighborComponent)))
-                                bounderies_between_components.Add((thisComp, NeighborComponent), final_weight);
+                            var key = Tuple.Create(thisComp, NeighborComponent);
+                            if (!bounderies_between_components.ContainsKey(key))
+                                bounderies_between_components.Add(key, final_weight);
                             else
                             {
-                                if (bounderies_between_components[(thisComp, NeighborComponent)] <= final_weight)
-                                    bounderies_between_components[(thisComp, NeighborComponent)] = final_weight;
+                                if (bounderies_between_components[key] <= final_weight)
+                                    bounderies_between_components[key] = final_weight;
 
                             }
                         }
@@ -792,12 +795,13 @@ namespace ImageTemplate
 
                             NeighborComponent = GetCompId(Index);
 
-                            if (!bounderies_between_components.ContainsKey((thisComp, NeighborComponent)))
-                                bounderies_between_components.Add((thisComp, NeighborComponent), final_weight);
+                            var key = Tuple.Create(thisComp, NeighborComponent);
+                            if (!bounderies_between_components.ContainsKey(key))
+                                bounderies_between_components.Add(key, final_weight);
                             else
                             {
-                                if (bounderies_between_components[(thisComp, NeighborComponent)] <= final_weight)
-                                    bounderies_between_components[(thisComp, NeighborComponent)] = final_weight;
+                                if (bounderies_between_components[key] <= final_weight)
+                                    bounderies_between_components[key] = final_weight;
 
                             }
                         }
@@ -810,19 +814,20 @@ namespace ImageTemplate
                         if (!comp.Contains(Index))
                         {
                             int red_weight = choose_color('r', i, j, i + 1, j);
-                            int blue_weight = choose_color('b', i, j, i + 1 j);
+                            int blue_weight = choose_color('b', i, j, i + 1, j);
                             int green_weight = choose_color('g', i, j, i + 1, j);
 
                             int final_weight = Math.Max(red_weight, Math.Max(green_weight, blue_weight));
 
                             NeighborComponent = GetCompId(Index);
 
-                            if (!bounderies_between_components.ContainsKey((thisComp, NeighborComponent)))
-                                bounderies_between_components.Add((thisComp, NeighborComponent), final_weight);
+                            var key = Tuple.Create(thisComp, NeighborComponent);
+                            if (!bounderies_between_components.ContainsKey(key))
+                                bounderies_between_components.Add(key, final_weight);
                             else
                             {
-                                if (bounderies_between_components[(thisComp, NeighborComponent)] <= final_weight)
-                                    bounderies_between_components[(thisComp, NeighborComponent)] = final_weight;
+                                if (bounderies_between_components[key] <= final_weight)
+                                    bounderies_between_components[key] = final_weight;
 
                             }
                         }
@@ -842,24 +847,25 @@ namespace ImageTemplate
 
                             NeighborComponent = GetCompId(Index);
 
-                            if (!bounderies_between_components.ContainsKey((thisComp, NeighborComponent)))
-                                bounderies_between_components.Add((thisComp, NeighborComponent), final_weight);
+                            var key = Tuple.Create(thisComp, NeighborComponent);
+                            if (!bounderies_between_components.ContainsKey(key))
+                                bounderies_between_components.Add(key, final_weight);
                             else
                             {
-                                if (bounderies_between_components[(thisComp, NeighborComponent)] <= final_weight)
-                                    bounderies_between_components[(thisComp, NeighborComponent)] = final_weight;
+                                if (bounderies_between_components[key] <= final_weight)
+                                    bounderies_between_components[key] = final_weight;
 
                             }
                         }
                     }
                 }
             }
-            Console.WriteLine("====================Bounderies=====================");
-            foreach (var p in bounderies_between_components)
-            {
-                Console.WriteLine("bounderies between component " + p.Key.Item1 + " and " + p.Key.Item2 + " = " + p.Value);
-            }
-            Console.WriteLine("====================================================");
+            //Console.WriteLine("====================Bounderies=====================");
+            //foreach (var p in bounderies_between_components)
+            //{
+            //    Console.WriteLine("bounderies between component " + p.Key.Item1 + " and " + p.Key.Item2 + " = " + p.Value);
+            //}
+            //Console.WriteLine("====================================================");
             return bounderies_between_components;
         }
 
