@@ -17,7 +17,7 @@ namespace ImageTemplate
         private int rows;
         private int columns;
         public long M;
-        public float k=1;
+        public float k=35000;
         public Dictionary<int, List<int>> _componentPixels;
         public static int [] red_member;
         public static int [] green_member;
@@ -147,7 +147,7 @@ namespace ImageTemplate
         {
             int root_x = Find_set(x, member);
             int root_y = Find_set(y, member);
-            if (root_x > root_y)
+            /*if (root_x > root_y)
             {
                 member[root_x] = root_y;
                 size[root_y] += size[root_x];
@@ -156,8 +156,21 @@ namespace ImageTemplate
             {
                 member[root_y] = root_x;
                 size[root_x] += size[root_y];
+            }*/
+            if (root_x != root_y)
+            {
+                if (size[root_x] < size[root_y])
+                {
+                    member[root_x] = root_y;
+                    size[root_y] += size[root_x];
+                }
+                else
+                {
+                    member[root_y] = root_x;
+                    size[root_x] += size[root_y];
+                }
             }
-            
+
         }
         private void union(int x, int y, int[] member)
         {
@@ -167,7 +180,6 @@ namespace ImageTemplate
             {
                 member[root_x] = root_y;
             }
-            // Update the size of the new root (root_y)            }
             else
             {
                 member[root_y] = root_x;
@@ -183,19 +195,31 @@ namespace ImageTemplate
 
             int Parent_of_currentIndex = Find_set(currentIndex,red_member);
             int Parent_of_index= Find_set(Index,red_member);
-            
-            
-            if (Parent_of_currentIndex != Parent_of_index)
+
+            if (Parent_of_currentIndex == Parent_of_index) return;
+
+            float thershold = k / red_size[Parent_of_currentIndex];
+            float thershold2 = k / red_size[Parent_of_index];
+
+            int diff1 = red_internal_Difference[Parent_of_currentIndex];
+            int diff2 = red_internal_Difference[Parent_of_index];
+
+            if (weight <= Math.Min(diff1 + thershold, diff2 + thershold2))
+            {
+                union(Parent_of_currentIndex, Parent_of_index, weight, red_member, red_size);
+                int newRoot = Find_set(Parent_of_currentIndex, red_member);
+                red_internal_Difference[newRoot] = CalculateNewInternal(weight, diff1, diff2);
+            }
+            /*if (Parent_of_currentIndex != Parent_of_index)
              {
-                float thershold = Math.Max(k / (float)red_size[Parent_of_currentIndex], 0.1f);
-                float thershold2 = Math.Max(k / (float)red_size[Parent_of_index], 0.1f);
+                
                 if (weight <= Math.Min(red_internal_Difference[Parent_of_currentIndex] + thershold, red_internal_Difference[Parent_of_index] + thershold2))
                 {
                     union(Index, currentIndex, weight, red_member,red_size);
                     int newindex = Find_set(Index, red_member);
                     red_internal_Difference[newindex]=CalculateNewInternal(weight, red_internal_Difference[Parent_of_currentIndex], red_internal_Difference[Parent_of_index]);
                 }
-            }
+            }*/
         }
         public void disjoint_for_blue(int currentIndex,int Index,int weight)
         {
@@ -237,18 +261,13 @@ namespace ImageTemplate
                 int currentIndex = l.a;
                 int index = l.b;
                 int weight = l.w;
-                if(weight!=0)
+                /*if(weight!=0)
                 {
                     int i = 0;
-                }
+                }*/
                disjoint_for_red(currentIndex, index, weight);
             }
-            for (int i = 0; i < M; i++)
-            {
-                if (!_componentPixels.ContainsKey(red_member[i]))
-                    _componentPixels[red_member[i]] = new List<int>();
-                _componentPixels[red_member[i]].Add(i);
-            }
+            
         }
 
         public void Blue_Segment()
@@ -277,12 +296,30 @@ namespace ImageTemplate
         {
             foreach (var l in red_edges)
             {
-                if (red_member[l.a] == red_member[l.b] && blue_member[l.a] == blue_member[l.b] && green_member[l.a] == green_member[l.b])
+                /*if (red_member[l.a] == red_member[l.b] && blue_member[l.a] == blue_member[l.b] && green_member[l.a] == green_member[l.b])
                 {
                     if (Find_set(l.a, final_member) != Find_set(l.b, final_member))
                         union(l.a, l.b, final_member);
+                }*/
+                int a = l.a;
+                int b = l.b;
+                if (Find_set(a, red_member) == Find_set(b, red_member) &&
+                    Find_set(a, blue_member) == Find_set(b, blue_member) &&
+                    Find_set(a, green_member) == Find_set(b, green_member))
+                {
+                    if (Find_set(a, final_member) != Find_set(b, final_member))
+                        union(a, b, final_member);
                 }
+
             }
+            for (int i = 0; i < M; i++)
+            {
+                int root = Find_set(i, final_member);
+                if (!_componentPixels.ContainsKey(root))
+                    _componentPixels[root] = new List<int>();
+                _componentPixels[root].Add(i);
+            }
+
             //for (int i = 0; i < M; i++)
             //{
             //    if (!_componentPixels.ContainsKey(final_member[i]))

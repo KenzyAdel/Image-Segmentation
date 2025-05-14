@@ -8,6 +8,7 @@ using System.Windows.Forms;
 using System.Runtime.InteropServices;
 using System.Linq; // lazm n4ilo 3lashan el doctor hinf5ona 
 using System.Threading.Tasks;
+using System.Diagnostics;
 
 namespace ImageTemplate
 {
@@ -51,14 +52,17 @@ namespace ImageTemplate
         {
             double sigma = double.Parse(txtGaussSigma.Text);
             int maskSize = (int)nudMaskSize.Value;
-           // ImageMatrix = ImageOperations.GaussianFilter1D(ImageMatrix, maskSize, sigma);
+            ImageMatrix = ImageOperations.GaussianFilter1D(ImageMatrix, maskSize, sigma);
 
+            Stopwatch timer = Stopwatch.StartNew();
             Segmentation segmentation = new Segmentation(ImageMatrix);
             segmentation.constructEdges();
             segmentation.Red_Segment();
             segmentation.Blue_Segment();
             segmentation.Green_Segment();
             segmentation.Merge();
+            timer.Stop();
+            long time = timer.ElapsedMilliseconds;
 
             //Internal_Difference internal_diff = new Internal_Difference(ImageMatrix);
             //segmentation.SegmentImage();
@@ -66,10 +70,12 @@ namespace ImageTemplate
             // internal_diff.CalculateFinalInternalDifferences(segmentation._componentPixels);
             // internal_diff.Difference_between_2_components(segmentation._componentPixels);
             // internal_diff.Merge(internal_diff.bounderies_between_components, internal_diff.internalDifferences, 30000);
-            Console.WriteLine("\n=== Components and Pixel Counts ===");
+            //Console.WriteLine("\n=== Components and Pixel Counts ===");
+            int count = 0;
             foreach (var component in segmentation._componentPixels)
             {
-                int componentId = component.Key;
+                count++;
+                /*int componentId = component.Key;
                 List<int> pixels = new List<int>();
 
                 // Collect pixels with non-zero intensities and count them
@@ -78,17 +84,18 @@ namespace ImageTemplate
                 // Print component details
                 Console.Write($"Component {componentId}: ");
                 //bool first = true;
-                /*foreach (long pixel in pixels)
+                foreach (long pixel in pixels)
                 {
                     if (!first) Console.Write(", ");
                     Console.Write($"arr[{pixel}] = {intensities[pixel]}");
                     first = false;
-                }*/
+                }
                 Console.WriteLine($" (Count: {component.Value.Count})");
                 //}
-
+*/
             }
-
+            Console.WriteLine($" (Total Components: {count})");
+            Console.WriteLine($" (Total Time: {time})");
 
 
 
