@@ -51,26 +51,21 @@ namespace ImageTemplate
         {
             double sigma = double.Parse(txtGaussSigma.Text);
             int maskSize = (int)nudMaskSize.Value;
-            //ImageMatrix = ImageOperations.GaussianFilter1D(ImageMatrix, maskSize, sigma);
+           // ImageMatrix = ImageOperations.GaussianFilter1D(ImageMatrix, maskSize, sigma);
 
-            /*Console.WriteLine("Printing ImageMatrix:");
-            for (int i = 0; i < ImageMatrix.GetLength(0); i++)  // Loop through rows
-            {
-                for (int j = 0; j < ImageMatrix.GetLength(1); j++)  // Loop through columns
-                {
-                    Console.Write((int)ImageMatrix[i, j].blue + "  ");  // Print each element followed by a tab for better formatting
-                }
-                Console.WriteLine("\n");  // Move to the next line after each row
-                Console.WriteLine();
-            }*/
-            // GRAPH graph = new GRAPH(ImageMatrix);
             Segmentation segmentation = new Segmentation(ImageMatrix);
-            Internal_Difference internal_diff = new Internal_Difference(ImageMatrix);
-            //segmentation.Blue_Segment();
-            //segmentation.Green_Segment();
-            //segmentation.Red_Segment();
-            //segmentation.GetCombinedComponents();
-            segmentation.SegmentImage();
+            segmentation.constructEdges();
+            segmentation.Red_Segment();
+            segmentation.Blue_Segment();
+            segmentation.Green_Segment();
+            segmentation.Merge();
+
+            //Internal_Difference internal_diff = new Internal_Difference(ImageMatrix);
+            //segmentation.SegmentImage();
+
+            // internal_diff.CalculateFinalInternalDifferences(segmentation._componentPixels);
+            // internal_diff.Difference_between_2_components(segmentation._componentPixels);
+            // internal_diff.Merge(internal_diff.bounderies_between_components, internal_diff.internalDifferences, 30000);
             Console.WriteLine("\n=== Components and Pixel Counts ===");
             foreach (var component in segmentation._componentPixels)
             {
@@ -92,14 +87,12 @@ namespace ImageTemplate
                 Console.WriteLine($" (Count: {component.Value.Count})");
                 //}
 
-
-                // }
             }
 
 
-            internal_diff.CalculateFinalInternalDifferences(segmentation._componentPixels);
-            internal_diff.Difference_between_2_components(segmentation._componentPixels);
-           // internal_diff.Difference_between_2_components(segmentation._componentPixels);
+
+
+            // internal_diff.Difference_between_2_components(segmentation._componentPixels);
             //  List<(long v1, long v2, int w)> Blue_Weight;
             // List<(long v1, long v2, int w)> Green_Weight;
 
@@ -129,8 +122,8 @@ namespace ImageTemplate
             // Internal_Difference internal_Difference = new Internal_Difference(segmentation.M);
             // Dictionary<Tuple<long, long>, int> bounderies_between_components = internal_Difference.Difference_between_2_components(components,segmentation.M, Red_Weights, Green_Weight, Blue_Weight);
 
-             //Console.WriteLine("Red Component Counts:");
-             //PrintComponentCounts(segmentation.);
+            //Console.WriteLine("Red Component Counts:");
+            //PrintComponentCounts(segmentation.);
 
             // Console.WriteLine("Green Component Counts:");
             // PrintComponentCounts(segmentation.greenMap);
@@ -139,12 +132,14 @@ namespace ImageTemplate
             // PrintComponentCounts(segmentation.blueMap);
 
             // Print all components and their pixel counts
-           
+
             MessageBox.Show("Red weights printed to console!");
             //  ImageOperations.DisplayImage(ImageMatrix, pictureBox2);
 
 
-        }
+
+
+        }  
         private void PrintComponentCounts(long[] map)
         {
             Dictionary<long, int> countMap = new Dictionary<long, int>();

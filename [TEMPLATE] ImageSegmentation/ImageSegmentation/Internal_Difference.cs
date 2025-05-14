@@ -6,6 +6,7 @@ using System.Drawing.Drawing2D;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using System.Windows.Forms.VisualStyles;
 
 namespace ImageTemplate
@@ -13,6 +14,9 @@ namespace ImageTemplate
     public class Internal_Difference
     {
         Dictionary<int,int> member;
+        public Dictionary<Tuple<int, int>, int> bounderies_between_components;
+        public Dictionary<int, (int, List<int>)> internalDifferences;
+
         private RGBPixel[,] imageMatrix;
         private int rows;
         private int columns;
@@ -22,9 +26,12 @@ namespace ImageTemplate
             rows = matrix.GetLength(0);
             columns = matrix.GetLength(1);
             member = new Dictionary<int, int>();
-            for (int i = 0; i < rows*columns; i++)
+            bounderies_between_components = new Dictionary<Tuple<int, int>, int>();
+            internalDifferences = new Dictionary<int, (int, List<int>)>();
+
+            for (int i = 0; i < rows * columns; i++)
                 Make_Set(i);
-            //member[i] = i;
+            ////member[i] = i;
         }
         public void Make_Set(int x)
         {
@@ -36,7 +43,7 @@ namespace ImageTemplate
                 member[x] = Find_set(member[x]);
             return member[x];
         }
-        public void Union(int x, int y)
+        public void Union(int x, int y)//maybe we need to change the implementation
         {
             int xSet = Find_set(x);
             int ySet = Find_set(y);
@@ -81,7 +88,7 @@ namespace ImageTemplate
             }
             else
             {
-                NeighborComponent = red;
+                NeighborComponent = 40000000+blue;
             }
             return NeighborComponent;
         }
@@ -95,7 +102,7 @@ namespace ImageTemplate
             HashSet<int> componentSet = new HashSet<int>(component);
             List<(int v1, int v2, int w)> uniqueEdges = new List<(int v1, int v2, int w)>();
             HashSet<(int, int)> addedEdges = new HashSet<(int, int)>();
-
+            //Construct edges
             foreach (int v1 in component)
             {
                 int i = (v1 / columns);
@@ -613,7 +620,6 @@ namespace ImageTemplate
 
         public Dictionary<int, (int maxInternalDifference, List<int> pixels)> CalculateFinalInternalDifferences(Dictionary<int, List<int>> pixels)
         {
-            var internalDifferences = new Dictionary<int, (int maxInternalDifference, List<int> pixels)>();
             int i = 0;
             int compId = 0;
             foreach (var pixel in pixels.Values)
@@ -624,6 +630,7 @@ namespace ImageTemplate
                 int blueIntDiff = CalculateInternalDifference_Blue(pixel, 'b');
 
                 int maxInternalDifference = Math.Max(redIntDiff, Math.Max(greenIntDiff, blueIntDiff));
+                compId = GetCompId(pixel[0]);
                 internalDifferences[compId] = (maxInternalDifference, pixel);
                 compId++;
 
@@ -640,7 +647,6 @@ namespace ImageTemplate
                 HashSet<int> set = new HashSet<int>(v.Value);
                 componentSet.Add(set);
             }
-            Dictionary<Tuple<int, int>, int> bounderies_between_components = new Dictionary<Tuple<int, int>, int>();
 
             foreach(var l in component)
             {
@@ -868,7 +874,68 @@ namespace ImageTemplate
             //Console.WriteLine("====================================================");
             return bounderies_between_components;
         }
+        public bool Predicate(int size_component1,int size_component2,
+                      int internalDiff1, int internalDiff2,
+                      int minboundry, double k)
+        {
+            double tau1 = k / size_component1;
+            double tau2 = k / size_component2;
 
+            double mInt = Math.Min(internalDiff1 + tau1, internalDiff2 + tau2);
+
+            return minboundry < mInt;
+        }
+        public void Merge(Dictionary<Tuple<int, int>, int> bounderies_between_components, Dictionary<int, (int, List<int> )> internalDiff,double k)
+        {
+            member.Clear();
+            foreach (var boundery in bounderies_between_components)
+            {
+                Make_Set(boundery.Key.Item1);
+                Make_Set(boundery.Key.Item2);
+            }
+            foreach (var boundery in bounderies_between_components)
+            {
+                int a = boundery.Key.Item1;
+                int b = boundery.Key.Item2;
+                int min_boundry = boundery.Value;
+
+                int size1 = internalDiff[a].Item2.Count;
+                int size2 = internalDiff[b].Item2.Count;
+                if (Predicate(size1, size2, internalDiff[a].Item1, internalDiff[b].Item1, min_boundry, k))
+                {
+                    //merge
+                    int root_x = Find_set(a);
+                    int root_y = Find_set(b);
+                    if (root_x > root_y)
+                        member[root_x] = root_y;
+                    else
+                        member[root_y] = root_x;
+                }
+            }
+
+            Dictionary<int, List<List<int>>> Final_components = new Dictionary<int, List<List<int>>>();
+            var Key = member.Keys.ToList();
+            foreach (var it in Key)
+            {
+                int root = Find_set(it);
+                if (!Final_components.ContainsKey(root))
+                    Final_components[root] = new List<List<int>>();
+                Final_components[root].Add(internalDiff[it].Item2);
+
+            }
+            Console.WriteLine($"\nTotal components: {Final_components.Count}");
+
+            foreach (var kv in Final_components)
+            {
+                int compId = kv.Key;
+                List<List<int>> pixelLists = kv.Value;
+
+                // flatten the pixel‐lists into a total count
+                int totalPixels = pixelLists.Sum(list => list.Count);
+
+                Console.WriteLine($"Component {compId}: {totalPixels} pixels");
+            }
+
+        }
     }
-
 }
