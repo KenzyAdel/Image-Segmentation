@@ -61,6 +61,7 @@
             this.pictureBox1_bonus2.TabIndex = 0;
             this.pictureBox1_bonus2.TabStop = false;
             this.pictureBox1_bonus2.Click += new System.EventHandler(this.pictureBox1_bonus2_Click);
+            this.pictureBox1_bonus2.MouseClick += new System.Windows.Forms.MouseEventHandler(this.pictureBox1_bonus2_MouseClick);
             // 
             // panel2
             // 
@@ -94,6 +95,7 @@
             this.btnGaussSmooth.TabIndex = 18;
             this.btnGaussSmooth.Text = "Merge and Visualize";
             this.btnGaussSmooth.UseVisualStyleBackColor = true;
+            this.btnGaussSmooth.Click += new System.EventHandler(this.btnGaussSmooth_Click);
             // 
             // Bonus2
             // 

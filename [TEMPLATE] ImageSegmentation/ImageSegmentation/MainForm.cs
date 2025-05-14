@@ -28,10 +28,9 @@ namespace ImageTemplate
         }
 
         RGBPixel[,] ImageMatrix;
-
+        Segmentation segmentation;
 
         // lazm n4ilo 3lashan el doctor hinf5ona 
-
 
 
         private void btnOpen_Click(object sender, EventArgs e)
@@ -55,7 +54,7 @@ namespace ImageTemplate
             //ImageMatrix = ImageOperations.GaussianFilter1D(ImageMatrix, maskSize, sigma);
 
             Stopwatch timer = Stopwatch.StartNew();
-            Segmentation segmentation = new Segmentation(ImageMatrix);
+            segmentation = new Segmentation(ImageMatrix);
             segmentation.constructEdges();
             segmentation.Red_Segment();
             segmentation.Blue_Segment();
@@ -141,7 +140,7 @@ namespace ImageTemplate
             // Print all components and their pixel counts
 
             MessageBox.Show("Red weights printed to console!");
-            //  ImageOperations.DisplayImage(ImageMatrix, pictureBox2);
+            ImageOperations.DisplayImage(ImageMatrix, pictureBox2);
 
 
 
@@ -175,8 +174,9 @@ namespace ImageTemplate
             if (pictureBox2.Image != null)
             {
                 // Create Form2 and pass the image
-                Bonus2 bonus2 = new Bonus2(pictureBox2.Image);
+                Bonus2 bonus2 = new Bonus2(pictureBox2.Image, segmentation);
                 bonus2.Show();
+                this.Hide();
             }
             else
             {
