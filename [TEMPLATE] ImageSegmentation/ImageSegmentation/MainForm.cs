@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using System.Linq; // lazm n4ilo 3lashan el doctor hinf5ona 
 using System.Threading.Tasks;
 using System.Diagnostics;
+using System.IO;
 
 namespace ImageTemplate
 {
@@ -55,115 +56,87 @@ namespace ImageTemplate
             ImageMatrix = ImageOperations.GaussianFilter1D(ImageMatrix, maskSize, sigma);
 
             Stopwatch timer = Stopwatch.StartNew();
+            Console.WriteLine("======Time Started=======");
             Segmentation segmentation = new Segmentation(ImageMatrix);
-            segmentation.constructEdges();
+            //segmentation.constructEdges();
+
+
+            Parallel.Invoke(
+                () =>
+                {
+                    Console.WriteLine($"Thread {Task.CurrentId}: Starting Red Segment..."); 
+                    segmentation.ConstructRedEdges();
+                    Console.WriteLine($"Thread {Task.CurrentId}: Finished Red Segment.");
+                },
+                () =>
+                {
+                    Console.WriteLine($"Thread {Task.CurrentId}: Starting Blue Segment...");
+                    segmentation.ConstructBlueEdges();
+                    Console.WriteLine($"Thread {Task.CurrentId}: Finished Blue Segment.");
+                },
+                () =>
+                {
+                    Console.WriteLine($"Thread {Task.CurrentId}: Starting Green Segment...");
+                    segmentation.ConstructGreenEdges();
+                    Console.WriteLine($"Thread {Task.CurrentId}: Finished Green Segment.");
+                }
+            );
+
+
+
+            Parallel.Invoke(
+        () =>
+        {
+            Console.WriteLine($"Thread {Task.CurrentId}: Starting Red Segment..."); // Optional logging
             segmentation.Red_Segment();
+            Console.WriteLine($"Thread {Task.CurrentId}: Finished Red Segment.");
+        },
+        () =>
+        {
+            Console.WriteLine($"Thread {Task.CurrentId}: Starting Blue Segment...");
             segmentation.Blue_Segment();
+            Console.WriteLine($"Thread {Task.CurrentId}: Finished Blue Segment.");
+        },
+        () =>
+        {
+            Console.WriteLine($"Thread {Task.CurrentId}: Starting Green Segment...");
             segmentation.Green_Segment();
+            Console.WriteLine($"Thread {Task.CurrentId}: Finished Green Segment.");
+        }
+    );
+
             segmentation.Merge();
             timer.Stop();
             long time = timer.ElapsedMilliseconds;
-
-            //Internal_Difference internal_diff = new Internal_Difference(ImageMatrix);
-            //segmentation.SegmentImage();
-
-            // internal_diff.CalculateFinalInternalDifferences(segmentation._componentPixels);
-            // internal_diff.Difference_between_2_components(segmentation._componentPixels);
-            // internal_diff.Merge(internal_diff.bounderies_between_components, internal_diff.internalDifferences, 30000);
-            //Console.WriteLine("\n=== Components and Pixel Counts ===");
+            Console.WriteLine($" (Total Time: {time})");
+          
             int count = 0;
+            List<int> pixels=new List<int>();
             foreach (var component in segmentation._componentPixels)
             {
                 count++;
-                /*int componentId = component.Key;
-                List<int> pixels = new List<int>();
-
-                // Collect pixels with non-zero intensities and count them
-
-
-                // Print component details
-                Console.Write($"Component {componentId}: ");
-                //bool first = true;
-                foreach (long pixel in pixels)
-                {
-                    if (!first) Console.Write(", ");
-                    Console.Write($"arr[{pixel}] = {intensities[pixel]}");
-                    first = false;
-                }
-                Console.WriteLine($" (Count: {component.Value.Count})");
-                //}
-*/
+                int componentId = component.Key;
+                pixels.Add(component.Value.Count);
+               
             }
             Console.WriteLine($" (Total Components: {count})");
-            Console.WriteLine($" (Total Time: {time})");
 
+            pixels.Sort();
+            pixels.Reverse();
+            string outputFilePath = "results.txt"; 
 
-
-            // internal_diff.Difference_between_2_components(segmentation._componentPixels);
-            //  List<(long v1, long v2, int w)> Blue_Weight;
-            // List<(long v1, long v2, int w)> Green_Weight;
-
-            //     Parallel.Invoke(
-            //    () => Red_Weights = graph.Red_Weight(),
-            //    () => Blue_Weight = graph.Blue_Weight(),
-            //    () => Green_Weight = graph.Green_Weight()
-            //);
-            // lazm n4ilo 3lashan el doctor hinf5ona 
-            // Segmentation part
-
-            /* Segmentation segmentation = new Segmentation(ImageMatrix);
-             var (redMap, greenMap, blueMap) = segmentation.SegmentImage();
-
-            // Count component IDs
-            Console.WriteLine("Red Component Counts:");
-            PrintComponentCounts(redMap);
-
-            Console.WriteLine("Green Component Counts:");
-            PrintComponentCounts(greenMap);
-
-            Console.WriteLine("Blue Component Counts:");
-            PrintComponentCounts(blueMap);*/
-
-            // Segmentation segmentation = new Segmentation(ImageMatrix);
-            // Dictionary<long, List<long>> components = segmentation.SegmentImage(Red_Weights,Blue_Weight,Green_Weight);
-            // Internal_Difference internal_Difference = new Internal_Difference(segmentation.M);
-            // Dictionary<Tuple<long, long>, int> bounderies_between_components = internal_Difference.Difference_between_2_components(components,segmentation.M, Red_Weights, Green_Weight, Blue_Weight);
-
-            //Console.WriteLine("Red Component Counts:");
-            //PrintComponentCounts(segmentation.);
-
-            // Console.WriteLine("Green Component Counts:");
-            // PrintComponentCounts(segmentation.greenMap);
-
-            // Console.WriteLine("Blue Component Counts:");
-            // PrintComponentCounts(segmentation.blueMap);
-
-            // Print all components and their pixel counts
-
-            MessageBox.Show("Red weights printed to console!");
-            //  ImageOperations.DisplayImage(ImageMatrix, pictureBox2);
-
-
-
+            using (StreamWriter writer = new StreamWriter(outputFilePath))
+            {
+                foreach (var pixel in pixels)
+                {
+                    writer.WriteLine(pixel); 
+                }
+            }
+           
+            //MessageBox.Show("Red weights printed to console!");
+            ImageOperations.DisplayImage(ImageMatrix, pictureBox2);
 
         }  
-        private void PrintComponentCounts(long[] map)
-        {
-            Dictionary<long, int> countMap = new Dictionary<long, int>();
-
-            foreach (long id in map)
-            {
-                if (!countMap.ContainsKey(id))
-                    countMap[id] = 0;
-                countMap[id]++;
-            }
-
-            foreach (var kvp in countMap.OrderBy(k => k.Key))
-            {
-                Console.WriteLine($"Component ID {kvp.Key}: {kvp.Value} pixels");
-            }
-        }
-
 
         private void MainForm_Load(object sender, EventArgs e)
         {
