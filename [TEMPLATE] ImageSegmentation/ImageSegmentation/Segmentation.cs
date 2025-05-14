@@ -17,7 +17,7 @@ namespace ImageTemplate
         private int rows;
         private int columns;
         public long M;
-        public float k=35000;
+        public float k=1;
         public Dictionary<int, List<int>> _componentPixels;
         public static int [] red_member;
         public static int [] green_member;

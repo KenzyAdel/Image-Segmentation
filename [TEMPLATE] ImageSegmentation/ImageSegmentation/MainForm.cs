@@ -52,7 +52,7 @@ namespace ImageTemplate
         {
             double sigma = double.Parse(txtGaussSigma.Text);
             int maskSize = (int)nudMaskSize.Value;
-            ImageMatrix = ImageOperations.GaussianFilter1D(ImageMatrix, maskSize, sigma);
+            //ImageMatrix = ImageOperations.GaussianFilter1D(ImageMatrix, maskSize, sigma);
 
             Stopwatch timer = Stopwatch.StartNew();
             Segmentation segmentation = new Segmentation(ImageMatrix);
@@ -168,6 +168,20 @@ namespace ImageTemplate
         private void MainForm_Load(object sender, EventArgs e)
         {
 
+        }
+
+        private void merge_form2_Click(object sender, EventArgs e)
+        {
+            if (pictureBox2.Image != null)
+            {
+                // Create Form2 and pass the image
+                Bonus2 bonus2 = new Bonus2(pictureBox2.Image);
+                bonus2.Show();
+            }
+            else
+            {
+                MessageBox.Show("No image in PictureBox!");
+            }
         }
     }
 }
