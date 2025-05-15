@@ -33,6 +33,8 @@
             this.panel2 = new System.Windows.Forms.Panel();
             this.pictureBox2_bonus2 = new System.Windows.Forms.PictureBox();
             this.Merge_Visualize = new System.Windows.Forms.Button();
+            this.clearSelections = new System.Windows.Forms.Button();
+            this.backBtn = new System.Windows.Forms.Button();
             this.panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1_bonus2)).BeginInit();
             this.panel2.SuspendLayout();
@@ -87,7 +89,7 @@
             // Merge_Visualize
             // 
             this.Merge_Visualize.Font = new System.Drawing.Font("Tahoma", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.Merge_Visualize.Location = new System.Drawing.Point(552, 477);
+            this.Merge_Visualize.Location = new System.Drawing.Point(282, 477);
             this.Merge_Visualize.Margin = new System.Windows.Forms.Padding(4);
             this.Merge_Visualize.Name = "Merge_Visualize";
             this.Merge_Visualize.Size = new System.Drawing.Size(126, 89);
@@ -96,11 +98,37 @@
             this.Merge_Visualize.UseVisualStyleBackColor = true;
             this.Merge_Visualize.Click += new System.EventHandler(this.Merge_Visualize_Click);
             // 
+            // clearSelections
+            // 
+            this.clearSelections.Font = new System.Drawing.Font("Tahoma", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.clearSelections.Location = new System.Drawing.Point(789, 477);
+            this.clearSelections.Margin = new System.Windows.Forms.Padding(4);
+            this.clearSelections.Name = "clearSelections";
+            this.clearSelections.Size = new System.Drawing.Size(130, 89);
+            this.clearSelections.TabIndex = 19;
+            this.clearSelections.Text = "Clear Selections";
+            this.clearSelections.UseVisualStyleBackColor = true;
+            this.clearSelections.Click += new System.EventHandler(this.clearSelections_Click);
+            // 
+            // backBtn
+            // 
+            this.backBtn.Font = new System.Drawing.Font("Tahoma", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.backBtn.Location = new System.Drawing.Point(1069, 570);
+            this.backBtn.Margin = new System.Windows.Forms.Padding(4);
+            this.backBtn.Name = "backBtn";
+            this.backBtn.Size = new System.Drawing.Size(123, 32);
+            this.backBtn.TabIndex = 20;
+            this.backBtn.Text = "Back";
+            this.backBtn.UseVisualStyleBackColor = true;
+            this.backBtn.Click += new System.EventHandler(this.backBtn_Click);
+            // 
             // Bonus2
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1205, 615);
+            this.Controls.Add(this.backBtn);
+            this.Controls.Add(this.clearSelections);
             this.Controls.Add(this.Merge_Visualize);
             this.Controls.Add(this.panel2);
             this.Controls.Add(this.panel1);
@@ -123,5 +151,7 @@
         private System.Windows.Forms.Panel panel2;
         private System.Windows.Forms.PictureBox pictureBox2_bonus2;
         private System.Windows.Forms.Button Merge_Visualize;
+        private System.Windows.Forms.Button clearSelections;
+        private System.Windows.Forms.Button backBtn;
     }
 }

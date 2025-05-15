@@ -14,17 +14,19 @@ namespace ImageTemplate
     public partial class Bonus2 : Form
     {
         private Segmentation rcvComponents;
-        private HashSet<int> parentComponents = new HashSet<int>();
+        private HashSet<int> parentComponents;
         private RGBPixel[,] ImageMatrix;
+        private Image InitialImageState;
         public Bonus2(Image imageFromForm1, Segmentation segmentation, RGBPixel[,] ImageMatrix)
         {
             InitializeComponent();
 
+            InitialImageState = imageFromForm1;
             // Receive the output of the mainForm in the constructor 
-            pictureBox1_bonus2.Image = imageFromForm1;
+            pictureBox1_bonus2.Image = InitialImageState;
             rcvComponents = segmentation;
             this.ImageMatrix = ImageMatrix;
-
+            parentComponents = new HashSet<int>();
             // Debug the number of received components
             Console.WriteLine($"Total components in received segmentation: {rcvComponents._componentPixels.Count}");
         }
@@ -88,6 +90,21 @@ namespace ImageTemplate
             pictureBox2_bonus2.Image = extractedComponent;
         }
 
+        private void clearSelections_Click(object sender, EventArgs e)
+        {
+            parentComponents.Clear();
+            pictureBox1_bonus2.Image = InitialImageState;
+            pictureBox2_bonus2.Image = null;
 
+            // Remove the drawn black circles
+            pictureBox1_bonus2.Invalidate();
+        }
+
+        private void backBtn_Click(object sender, EventArgs e)
+        {
+            MainForm mainForm = new MainForm();
+            mainForm.Show();
+            this.Hide();
+        }
     }
 }
