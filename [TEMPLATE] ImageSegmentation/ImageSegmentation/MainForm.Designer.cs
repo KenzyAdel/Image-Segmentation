@@ -44,6 +44,7 @@ namespace ImageTemplate
             this.txtGaussSigma = new System.Windows.Forms.TextBox();
             this.panel1 = new System.Windows.Forms.Panel();
             this.panel2 = new System.Windows.Forms.Panel();
+            this.MergeForm2 = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudMaskSize)).BeginInit();
@@ -243,11 +244,23 @@ namespace ImageTemplate
             this.panel2.Size = new System.Drawing.Size(560, 456);
             this.panel2.TabIndex = 16;
             // 
+            // MergeForm2
+            // 
+            this.MergeForm2.Font = new System.Drawing.Font("Tahoma", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.MergeForm2.Location = new System.Drawing.Point(1014, 513);
+            this.MergeForm2.Margin = new System.Windows.Forms.Padding(4);
+            this.MergeForm2.Name = "MergeForm2";
+            this.MergeForm2.Size = new System.Drawing.Size(126, 89);
+            this.MergeForm2.TabIndex = 17;
+            this.MergeForm2.Text = "Merge (Bonus2)";
+            this.MergeForm2.UseVisualStyleBackColor = true;
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1205, 615);
+            this.Controls.Add(this.MergeForm2);
             this.Controls.Add(this.panel2);
             this.Controls.Add(this.panel1);
             this.Controls.Add(this.txtGaussSigma);
@@ -296,6 +309,7 @@ namespace ImageTemplate
         private System.Windows.Forms.TextBox txtGaussSigma;
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.Panel panel2;
+        private System.Windows.Forms.Button MergeForm2;
     }
 }
 
