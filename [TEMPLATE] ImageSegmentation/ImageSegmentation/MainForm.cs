@@ -221,6 +221,9 @@ namespace ImageTemplate
 
         }
 
+        private void MergeForm2_Click(object sender, EventArgs e)
+        {
 
+        }
     }
 }

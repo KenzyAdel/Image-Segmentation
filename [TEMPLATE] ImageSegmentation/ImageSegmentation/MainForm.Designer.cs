@@ -256,6 +256,7 @@ namespace ImageTemplate
             this.MergeForm2.TabIndex = 17;
             this.MergeForm2.Text = "Merge (Bonus2)";
             this.MergeForm2.UseVisualStyleBackColor = true;
+            this.MergeForm2.Click += new System.EventHandler(this.MergeForm2_Click);
             // 
             // label7
             // 

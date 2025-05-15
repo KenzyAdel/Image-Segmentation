@@ -16,5 +16,15 @@ namespace ImageTemplate
         {
             InitializeComponent();
         }
+
+        private void pictureBox1_bonus2_MouseClick(object sender, MouseEventArgs e)
+        {
+
+        }
+
+        private void Merge_Visualize_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }
