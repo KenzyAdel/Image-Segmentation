@@ -45,6 +45,18 @@ namespace ImageTemplate
 
         private void btnGaussSmooth_Click(object sender, EventArgs e)
         {
+            // Handle exception
+            if (string.IsNullOrEmpty(K.Text))
+            {
+                MessageBox.Show("No K threshold is passed!");
+                return;
+            }
+            if (!double.TryParse(K.Text, out double kthr))
+            {
+                MessageBox.Show("Invalid K value! Must be a number.");
+                return;
+            }
+
             double sigma = double.Parse(txtGaussSigma.Text);
             int maskSize = (int)nudMaskSize.Value;
             ImageMatrix = ImageOperations.GaussianFilter1D(ImageMatrix, maskSize, sigma);

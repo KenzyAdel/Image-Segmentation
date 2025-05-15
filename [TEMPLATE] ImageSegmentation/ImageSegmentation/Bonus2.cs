@@ -42,7 +42,7 @@ namespace ImageTemplate
             using (Graphics g = pictureBox1_bonus2.CreateGraphics())
             {
                 //Draw black circles on the selected pixels
-                g.FillEllipse(Brushes.Black, column - 2, row - 2, 4, 4);
+                g.FillEllipse(Brushes.Black, column - 3, row - 3, 5, 5);
             }
 
             // Get the pixel index to get its component
