@@ -27,7 +27,7 @@ namespace ImageTemplate
         }
 
         RGBPixel[,] ImageMatrix;
-
+        Segmentation segmentation;
 
         private void btnOpen_Click(object sender, EventArgs e)
         {
@@ -52,7 +52,7 @@ namespace ImageTemplate
             Stopwatch timer = Stopwatch.StartNew();
             Console.WriteLine("======Time Started=======");
             double k = Convert.ToDouble(K.Text);
-            Segmentation segmentation = new Segmentation(ImageMatrix , k);
+            segmentation = new Segmentation(ImageMatrix , k);
             //segmentation.constructEdges();
 
 
@@ -223,7 +223,17 @@ namespace ImageTemplate
 
         private void MergeForm2_Click(object sender, EventArgs e)
         {
-
+            if (pictureBox2.Image != null)
+            {
+                // Create Form2 and pass the image
+                Bonus2 bonus2 = new Bonus2(pictureBox2.Image, segmentation);
+                bonus2.Show();
+                this.Hide();
+            }
+            else
+            {
+                MessageBox.Show("No image in PictureBox! Apply gaussian then merge.");
+            }
         }
     }
 }
