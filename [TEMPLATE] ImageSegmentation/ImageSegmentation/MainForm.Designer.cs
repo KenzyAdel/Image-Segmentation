@@ -45,6 +45,8 @@ namespace ImageTemplate
             this.panel1 = new System.Windows.Forms.Panel();
             this.panel2 = new System.Windows.Forms.Panel();
             this.MergeForm2 = new System.Windows.Forms.Button();
+            this.label7 = new System.Windows.Forms.Label();
+            this.K = new System.Windows.Forms.TextBox();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudMaskSize)).BeginInit();
@@ -255,11 +257,31 @@ namespace ImageTemplate
             this.MergeForm2.Text = "Merge (Bonus2)";
             this.MergeForm2.UseVisualStyleBackColor = true;
             // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Font = new System.Drawing.Font("Tahoma", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label7.Location = new System.Drawing.Point(97, 549);
+            this.label7.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(22, 21);
+            this.label7.TabIndex = 18;
+            this.label7.Text = "K";
+            // 
+            // K
+            // 
+            this.K.Location = new System.Drawing.Point(139, 549);
+            this.K.Name = "K";
+            this.K.Size = new System.Drawing.Size(100, 22);
+            this.K.TabIndex = 19;
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1205, 615);
+            this.Controls.Add(this.K);
+            this.Controls.Add(this.label7);
             this.Controls.Add(this.MergeForm2);
             this.Controls.Add(this.panel2);
             this.Controls.Add(this.panel1);
@@ -310,6 +332,8 @@ namespace ImageTemplate
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.Panel panel2;
         private System.Windows.Forms.Button MergeForm2;
+        private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.TextBox K;
     }
 }
 

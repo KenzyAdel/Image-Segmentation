@@ -17,7 +17,7 @@ namespace ImageTemplate
         private int rows;
         private int columns;
         public long M;
-        public float k=30000;
+        public double k;
         public Dictionary<int, List<int>> _componentPixels;
         public static int [] red_member;
         public static int [] green_member;
@@ -32,7 +32,7 @@ namespace ImageTemplate
         public int[] blue_internal_Difference;
         public int[] green_internal_Difference;
         public int[] final_member;
-        public Segmentation(RGBPixel[,] matrix)
+        public Segmentation(RGBPixel[,] matrix , double KK)
         {
             imageMatrix = matrix;
             rows = matrix.GetLength(0);
@@ -60,6 +60,7 @@ namespace ImageTemplate
                 Make_Set(i, green_member, green_size,green_internal_Difference);
                 Make_Set(i, final_member);
             }
+            k = KK;
         }
 
         public void ConstructRedEdges()
@@ -247,8 +248,8 @@ namespace ImageTemplate
 
             if (Parent_of_currentIndex == Parent_of_index) return;
 
-            float thershold = k / red_size[Parent_of_currentIndex];
-            float thershold2 = k / red_size[Parent_of_index];
+            double thershold = k / red_size[Parent_of_currentIndex];
+            double thershold2 = k / red_size[Parent_of_index];
 
             int diff1 = red_internal_Difference[Parent_of_currentIndex];
             int diff2 = red_internal_Difference[Parent_of_index];
@@ -267,8 +268,8 @@ namespace ImageTemplate
             int index2 = Find_set(Index, blue_member);
             if (Find_set(Index, blue_member) != Find_set(currentIndex, blue_member))
             {
-                float thershold = k / blue_size[index];
-                float thershold2 = k / blue_size[index2];
+                double thershold = k / blue_size[index];
+                double thershold2 = k / blue_size[index2];
                 if (weight <= Math.Min(blue_internal_Difference[index] + thershold, blue_internal_Difference[index2] + thershold2))
                 {
                     union(Index, currentIndex, weight, blue_member, blue_size);
@@ -283,8 +284,8 @@ namespace ImageTemplate
             int index2 = Find_set(Index, green_member);
             if (Find_set(Index, green_member) != Find_set(currentIndex, green_member))
             {
-                float thershold = k / green_size[index];
-                float thershold2 = k / green_size[index2];
+                double thershold = k / green_size[index];
+                double thershold2 = k / green_size[index2];
                 if (weight <= Math.Min(green_internal_Difference[index] + thershold, green_internal_Difference[index2] + thershold2))
                 {
                     union(Index, currentIndex, weight, green_member, green_size);

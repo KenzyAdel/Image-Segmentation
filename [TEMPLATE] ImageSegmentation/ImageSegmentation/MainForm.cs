@@ -2,14 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.Drawing;
-using System.Text;
-using System.Windows.Forms;
-using System.Runtime.InteropServices;
-using System.Linq; // lazm n4ilo 3lashan el doctor hinf5ona 
-using System.Threading.Tasks;
 using System.Diagnostics;
+using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.IO;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace ImageTemplate
 {
@@ -21,18 +22,11 @@ namespace ImageTemplate
         public MainForm()
         {
             InitializeComponent();
-
-            // lazm n4ilo 3lashan el doctor hinf5ona 
             AllocConsole();
-
 
         }
 
         RGBPixel[,] ImageMatrix;
-
-
-        // lazm n4ilo 3lashan el doctor hinf5ona 
-
 
 
         private void btnOpen_Click(object sender, EventArgs e)
@@ -57,7 +51,8 @@ namespace ImageTemplate
 
             Stopwatch timer = Stopwatch.StartNew();
             Console.WriteLine("======Time Started=======");
-            Segmentation segmentation = new Segmentation(ImageMatrix);
+            double k = Convert.ToDouble(K.Text);
+            Segmentation segmentation = new Segmentation(ImageMatrix , k);
             //segmentation.constructEdges();
 
 
@@ -106,6 +101,13 @@ namespace ImageTemplate
     );
 
             segmentation.Merge();
+
+            int rows = ImageOperations.GetHeight(ImageMatrix);
+            int columns = ImageOperations.GetWidth(ImageMatrix);
+            Color[,] colorArray = ColorComponentsTo2DArray(segmentation._componentPixels, columns, rows);
+            RGBPixel[,] rgbPixelArray = ConvertColorArrayToRgbPixelArray(colorArray);
+            ImageOperations.DisplayImage(rgbPixelArray, pictureBox2);
+
             timer.Stop();
             long time = timer.ElapsedMilliseconds;
             Console.WriteLine($" (Total Time: {time})");
@@ -132,15 +134,93 @@ namespace ImageTemplate
                     writer.WriteLine(pixel); 
                 }
             }
-           
-            //MessageBox.Show("Red weights printed to console!");
-            ImageOperations.DisplayImage(ImageMatrix, pictureBox2);
 
-        }  
+            //MessageBox.Show("Red weights printed to console!");
+            // ImageOperations.DisplayImage(ImageMatrix, pictureBox2);
+
+        }
+        public Color[,] ColorComponentsTo2DArray(Dictionary<int, List<int>> componentPixels, int width, int height)
+        {
+            Color[,] colorArray = new Color[height, width];
+
+            for (int y = 0; y < height; y++)
+                for (int x = 0; x < width; x++)
+                    colorArray[y, x] = Color.Black;
+
+            Random random = new Random(componentPixels.Count);
+
+            foreach (var component in componentPixels)
+            {
+                Color componentColor = GenerateDistinctColor(component.Key, random);
+
+                if (component.Value == null) continue;
+
+                foreach (int pixel in component.Value)
+                {
+                    int x = pixel % width;
+                    int y = pixel / width;
+
+                    if (x >= 0 && x < width && y >= 0 && y < height)
+                    {
+                        colorArray[y, x] = componentColor;
+                    }
+                }
+            }
+
+            return colorArray;
+        }
+
+
+        private HashSet<Color> usedColors = new HashSet<Color>();
+
+        private Color GenerateDistinctColor(long componentId, Random random)
+        {
+            Color newColor;
+            do
+            {
+
+                int r = random.Next(256);
+                int g = random.Next(256);
+                int b = random.Next(256);
+
+                newColor = Color.FromArgb(r, g, b);
+
+            } while (usedColors.Contains(newColor));
+
+            usedColors.Add(newColor);
+            return newColor;
+        }
+
+
+        private RGBPixel[,] ConvertColorArrayToRgbPixelArray(Color[,] colorArray)
+        {
+            int height = colorArray.GetLength(0);
+            int width = colorArray.GetLength(1);
+            RGBPixel[,] rgbArray = new RGBPixel[height, width];
+
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    Color color = colorArray[y, x];
+                    rgbArray[y, x] = new RGBPixel
+                    {
+                        red = color.R,
+                        green = color.G,
+                        blue = color.B
+                    };
+                }
+            }
+
+            return rgbArray;
+        }
+
 
         private void MainForm_Load(object sender, EventArgs e)
         {
 
         }
+
+
     }
 }
