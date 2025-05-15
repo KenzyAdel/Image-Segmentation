@@ -60,6 +60,7 @@
             this.pictureBox1_bonus2.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
             this.pictureBox1_bonus2.TabIndex = 0;
             this.pictureBox1_bonus2.TabStop = false;
+            this.pictureBox1_bonus2.MouseClick += new System.Windows.Forms.MouseEventHandler(this.pictureBox1_bonus2_MouseClick);
             // 
             // panel2
             // 
@@ -93,6 +94,7 @@
             this.Merge_Visualize.TabIndex = 18;
             this.Merge_Visualize.Text = "Merge and Visualize";
             this.Merge_Visualize.UseVisualStyleBackColor = true;
+            this.Merge_Visualize.Click += new System.EventHandler(this.Merge_Visualize_Click);
             // 
             // Bonus2
             // 

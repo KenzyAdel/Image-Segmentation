@@ -29,7 +29,7 @@ namespace ImageTemplate
         }
 
         RGBPixel[,] ImageMatrix;
-
+        Segmentation segmentation;
 
         // lazm n4ilo 3lashan el doctor hinf5ona 
 
@@ -57,7 +57,7 @@ namespace ImageTemplate
 
             Stopwatch timer = Stopwatch.StartNew();
             Console.WriteLine("======Time Started=======");
-            Segmentation segmentation = new Segmentation(ImageMatrix);
+            segmentation = new Segmentation(ImageMatrix);
             //segmentation.constructEdges();
 
 
@@ -141,6 +141,21 @@ namespace ImageTemplate
         private void MainForm_Load(object sender, EventArgs e)
         {
 
+        }
+
+        private void MergeForm2_Click(object sender, EventArgs e)
+        {
+            if (pictureBox2.Image != null)
+            {
+                // Create Form2 and pass the image
+                Bonus2 bonus2 = new Bonus2(pictureBox2.Image, segmentation);
+                bonus2.Show();
+                this.Hide();
+            }
+            else
+            {
+                MessageBox.Show("No image in PictureBox! Apply gaussian then merge.");
+            }
         }
     }
 }
