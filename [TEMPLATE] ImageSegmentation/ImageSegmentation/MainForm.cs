@@ -226,7 +226,7 @@ namespace ImageTemplate
             if (pictureBox2.Image != null)
             {
                 // Create Form2 and pass the image
-                Bonus2 bonus2 = new Bonus2(pictureBox2.Image, segmentation);
+                Bonus2 bonus2 = new Bonus2(pictureBox2.Image, segmentation, ImageMatrix);
                 bonus2.Show();
                 this.Hide();
             }

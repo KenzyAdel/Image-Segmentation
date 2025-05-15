@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,18 +11,19 @@ using System.Windows.Forms;
 
 namespace ImageTemplate
 {
-    public partial class Bonus2: Form
+    public partial class Bonus2 : Form
     {
         private Segmentation rcvComponents;
         private HashSet<int> parentComponents = new HashSet<int>();
-
-        public Bonus2(Image imageFromForm1, Segmentation segmentation)
+        private RGBPixel[,] ImageMatrix;
+        public Bonus2(Image imageFromForm1, Segmentation segmentation, RGBPixel[,] ImageMatrix)
         {
             InitializeComponent();
 
             // Receive the output of the mainForm in the constructor 
             pictureBox1_bonus2.Image = imageFromForm1;
             rcvComponents = segmentation;
+            this.ImageMatrix = ImageMatrix;
 
             // Debug the number of received components
             Console.WriteLine($"Total components in received segmentation: {rcvComponents._componentPixels.Count}");
@@ -53,33 +55,39 @@ namespace ImageTemplate
 
         private void Merge_Visualize_Click(object sender, EventArgs e)
         {
-            Bitmap pictureBox_original = (Bitmap)pictureBox1_bonus2.Image;
+
+            int columns = ImageMatrix.GetLength(1);
+            int rows = ImageMatrix.GetLength(0);
 
             // Initialize the dimensions of the selected components image
-            Bitmap extractedComponent = new Bitmap(pictureBox_original.Width, pictureBox_original.Height);
+            Bitmap extractedComponent = new Bitmap(columns, rows);
 
+            // For each selected component, restore original pixels
             foreach (int component in parentComponents)
             {
-                if (!rcvComponents._componentPixels.ContainsKey(component))
-                    continue;
 
-                // Get all indices that belong to the current component
-                var pixelIndices = rcvComponents._componentPixels[component];
-
-
-                foreach (int index in pixelIndices)
+                foreach (int pixelIndex in rcvComponents._componentPixels[component])
                 {
-                    // Converting a 1D index into 2D coordinates as we store it in a format index = i * columns + j;
-                    int width = pictureBox_original.Width;
-                    int pixelColumn = index % width;
-                    int pixelRow = index / width;
-                    // Get the original colors of the pixel and replace the RGB colors with the original colors
-                    Color pixelColors = pictureBox_original.GetPixel(pixelColumn, pixelRow);
-                    extractedComponent.SetPixel(pixelColumn, pixelRow, pixelColors);
+
+                    int pixelColumn = pixelIndex % columns;
+                    int pixelRow = pixelIndex / columns;
+
+                    // Get original RGB values from ImageMatrix
+                    RGBPixel originalPixelColors = ImageMatrix[pixelRow, pixelColumn];
+
+                    // Set the pixel in the current index (row, col) to it's RGB original colors
+                    extractedComponent.SetPixel(pixelColumn, pixelRow, Color.FromArgb(
+                        originalPixelColors.red,
+                        originalPixelColors.green,
+                        originalPixelColors.blue
+                    ));
                 }
             }
-            // Finally fill the picture box with the original pixel colors of the selected components
+
+            // Finally display the selected component with it's original colors in the picture box
             pictureBox2_bonus2.Image = extractedComponent;
         }
+
+
     }
 }
