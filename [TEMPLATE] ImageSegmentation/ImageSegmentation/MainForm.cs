@@ -5,6 +5,7 @@ using System.Data;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -141,12 +142,20 @@ namespace ImageTemplate
 
             using (StreamWriter writer = new StreamWriter(outputFilePath))
             {
+                writer.WriteLine(count);
                 foreach (var pixel in pixels)
                 {
                     writer.WriteLine(pixel); 
                 }
             }
 
+            SaveFileDialog saveFileDialog1 = new SaveFileDialog();
+            saveFileDialog1.Filter = "bmp files (*.bmp)|*.bmp|All files (*.*)|*.*";
+            saveFileDialog1.RestoreDirectory = true;
+            if (saveFileDialog1.ShowDialog() == DialogResult.OK)
+            {
+                pictureBox2.Image.Save(saveFileDialog1.FileName, ImageFormat.Bmp);
+            }
             //MessageBox.Show("Red weights printed to console!");
             // ImageOperations.DisplayImage(ImageMatrix, pictureBox2);
 
